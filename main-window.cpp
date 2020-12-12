@@ -110,7 +110,7 @@ void MainWindow::open_directory_dialog() {
         return;
 
     for (auto &&dir : dialog.selectedFiles()) {
-        QDirIterator iter(dir, {"*.dtb", "*.dtbo"}, QDir::Files, QDirIterator::Subdirectories);
+        QDirIterator iter(dir, {"*.dtb", "*.dtbo"}, QDir::Files);
         while (iter.hasNext()) {
             iter.next();
             if (!open(iter.filePath()))
