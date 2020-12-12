@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.18)
 
-project(fdt-viewer VERSION 0.3.0 LANGUAGES CXX)
+project(fdt-viewer VERSION 0.3.1 LANGUAGES CXX)
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
@@ -29,3 +29,4 @@ add_executable(fdt-viewer
 )
 
 target_link_libraries(fdt-viewer PRIVATE Qt5::Widgets)
+install(TARGETS fdt-viewer RUNTIME DESTINATION bin)
