@@ -25,6 +25,9 @@ using qt_fdt_properties = QList<qt_fdt_property>;
 Q_DECLARE_METATYPE(qt_fdt_property)
 Q_DECLARE_METATYPE(qt_fdt_properties)
 
+constexpr auto QT_ROLE_PROPERTY = Qt::UserRole;
+constexpr auto QT_ROLE_FILEPATH = Qt::UserRole + 1;
+
 string present_u32be(const QByteArray &data) {
     string ret;
 
@@ -103,7 +106,7 @@ bool MainWindow::open(const QString &path) {
 
     auto root = new QTreeWidgetItem(m_ui->treeWidget);
     root->setText(0, info.fileName());
-    root->setData(0, Qt::UserRole + 1, info.absoluteFilePath());
+    root->setData(0, QT_ROLE_FILEPATH, info.absoluteFilePath());
 
     std::stack<QTreeWidgetItem *> tree_stack;
 
@@ -127,13 +130,13 @@ bool MainWindow::open(const QString &path) {
 
     generator.insert_property = [&tree_stack](std::string_view &&name, std::string_view &&data) {
         auto current = tree_stack.top();
-        QVariant values = current->data(0, Qt::UserRole);
+        QVariant values = current->data(0, QT_ROLE_PROPERTY);
         auto properties = values.value<qt_fdt_properties>();
         qt_fdt_property property;
         property.name = QString::fromStdString(name.data());
         property.data = QByteArray(data.data(), data.size());
         properties << property;
-        current->setData(0, Qt::UserRole, QVariant::fromValue(properties));
+        current->setData(0, QT_ROLE_PROPERTY, QVariant::fromValue(properties));
     };
 
     fdt_parser parser(datamap.data(), datamap.size(), generator);
@@ -159,7 +162,7 @@ void MainWindow::update_fdt_path(QTreeWidgetItem *item) {
         root = root->parent();
     }
 
-    m_ui->statusbar->showMessage("file://" + root->data(0, Qt::UserRole + 1).toString());
+    m_ui->statusbar->showMessage("file://" + root->data(0, QT_ROLE_FILEPATH).toString());
     m_ui->path->setText("fdt://" + path);
 }
 
