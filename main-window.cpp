@@ -7,7 +7,9 @@
 #include <QFileDialog>
 #include <QMessageBox>
 
+#include <endian-conversions.hpp>
 #include <fdt-parser.hpp>
+
 #include <iostream>
 #include <stack>
 
@@ -22,12 +24,6 @@ using qt_fdt_properties = QList<qt_fdt_property>;
 
 Q_DECLARE_METATYPE(qt_fdt_property)
 Q_DECLARE_METATYPE(qt_fdt_properties)
-
-using string = QString;
-
-#include <endian-conversions.hpp>
-
-using u8 = std::uint8_t;
 
 string present_u32be(const QByteArray &data) {
     string ret;
@@ -157,7 +153,6 @@ void MainWindow::update_fdt_path(QTreeWidgetItem *item) {
     }
 
     m_ui->statusbar->showMessage("file://" + root->data(0, Qt::UserRole).toString());
-
     m_ui->path->setText("fdt://" + path);
 }
 

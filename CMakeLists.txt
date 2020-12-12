@@ -25,6 +25,7 @@ add_executable(fdt-viewer
     main-window.hpp
     main-window.ui
     main.cpp
+    types.hpp
 )
 
 target_link_libraries(fdt-viewer PRIVATE Qt5::Widgets)

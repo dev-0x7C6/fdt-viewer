@@ -1,9 +1,6 @@
 #pragma once
 
-#include <cstdint>
-
-using u32 = uint32_t;
-using u64 = uint64_t;
+#include <types.hpp>
 
 constexpr auto FDT_MAGIC_VALUE = 0xD00DFEED;
 
