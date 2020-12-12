@@ -16,9 +16,11 @@ find_package(Qt5 COMPONENTS Widgets REQUIRED)
 configure_file(config.h.in config.h)
 
 add_executable(fdt-viewer
+    endian-conversions.hpp
     fdt-header.hpp
     fdt-parser.cpp
     fdt-parser.hpp
+    fdt-property-types.hpp
     main-window.cpp
     main-window.hpp
     main-window.ui

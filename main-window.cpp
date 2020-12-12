@@ -13,13 +13,38 @@ using namespace Window;
 
 struct qt_fdt_property {
     QString name;
-    QString data;
+    QByteArray data;
 };
 
 using qt_fdt_properties = QList<qt_fdt_property>;
 
 Q_DECLARE_METATYPE(qt_fdt_property)
 Q_DECLARE_METATYPE(qt_fdt_properties)
+
+using string = QString;
+
+#include <endian-conversions.hpp>
+
+using u8 = std::uint8_t;
+
+string present_u32be(const QByteArray &data) {
+    string ret;
+
+    auto array = reinterpret_cast<u8 *>(const_cast<char *>(data.data()));
+    for (auto i = 0; i < data.size(); ++i) {
+        ret += "0x" + QString::number(array[i], 16).rightJustified(2, '0').toUpper() + " ";
+    }
+    ret.remove(ret.size() - 1, 1);
+
+    return ret;
+}
+
+string present(const qt_fdt_property &property) {
+    string ret;
+    ret += property.name + " = ";
+    ret += "<" + present_u32be(property.data) + ">;";
+    return ret;
+}
 
 MainWindow::MainWindow(QWidget *parent)
         : QMainWindow(parent)
@@ -46,7 +71,7 @@ MainWindow::MainWindow(QWidget *parent)
         QVariant values = item->data(0, Qt::UserRole);
         auto properties = values.value<qt_fdt_properties>();
         for (auto &&property : properties) {
-            m_ui->textBrowser->append(property.name + " = <" + property.data + ">");
+            m_ui->textBrowser->append(present(property));
         }
     });
 }
@@ -94,7 +119,7 @@ bool MainWindow::open(const QString &path) {
         auto properties = values.value<qt_fdt_properties>();
         qt_fdt_property property;
         property.name = QString::fromStdString(name.data());
-        property.data = QString::fromStdString(data.data());
+        property.data = QByteArray(data.data(), data.size());
         properties << property;
         current->setData(0, Qt::UserRole, QVariant::fromValue(properties));
     };
