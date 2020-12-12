@@ -84,14 +84,17 @@ void MainWindow::open_dialog() {
         tr("Any files (*.*)"),
     };
 
-    auto file_path = QFileDialog::getOpenFileName(this,
-        tr("Open Flattened Device Tree"), QDir::homePath(), filters.join(";;"));
-
-    if (file_path.isEmpty())
+    QFileDialog dialog(this);
+    dialog.setFileMode(QFileDialog::ExistingFiles);
+    dialog.setWindowTitle(tr("Open Flattened Device Tree"));
+    dialog.setDirectory(QDir::homePath());
+    dialog.setNameFilter(filters.join(";;"));
+    if (dialog.exec() == QDialog::Rejected)
         return;
 
-    if (!open(file_path))
-        QMessageBox::critical(this, tr("Invalid FDT format"), tr("Unable to parse %1").arg(file_path));
+    for (auto &&path : dialog.selectedFiles())
+        if (!open(path))
+            QMessageBox::critical(this, tr("Invalid FDT format"), tr("Unable to parse %1").arg(path));
 }
 
 bool MainWindow::open(const QString &path) {
