@@ -8,9 +8,10 @@ fdt_parser::fdt_parser(const char *data, u64 size, fdt_generator &generator)
         , m_size(size) {
     if (size >= sizeof(fdt_header)) {
         auto header = read_data_32be<fdt_header>(data);
-        if (FDT_MAGIC_VALUE == header.magic && size == header.totalsize)
-            m_header = std::move(header);
+        if (FDT_MAGIC_VALUE != header.magic || size != header.totalsize)
+            return;
 
+        m_header = std::move(header);
         parse(m_header.value(), generator);
     }
 }
