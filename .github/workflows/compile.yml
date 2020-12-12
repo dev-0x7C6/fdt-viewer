@@ -1,0 +1,21 @@
+name: Continuous integration
+
+on: [push]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: checkout 
+      uses: actions/checkout@v1
+      with:
+        submodules: recursive
+    - name: install qt
+      uses: jurplel/install-qt-action@v2.11.1
+    - name: install opengl
+      run: sudo apt-get install mesa-common-dev libglu1-mesa-dev ninja-build -y
+    - name: cmake
+      run: cmake -GNinja  .
+    - name: ninja 
+      run: ninja
