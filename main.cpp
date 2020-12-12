@@ -14,7 +14,8 @@ int main(int argc, char *argv[]) {
     application.setApplicationName(PROJECT_NAME);
     application.setApplicationVersion(version_string);
     application.setApplicationDisplayName(QString("Flattened Device Tree Viewer %1").arg(version_string));
-    Window::MainWindow w;
-    w.show();
+    Window::MainWindow window;
+    window.show();
+    window.open_dialog();
     return application.exec();
 }
