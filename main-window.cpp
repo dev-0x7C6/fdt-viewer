@@ -4,6 +4,8 @@
 #include <QByteArray>
 #include <QDir>
 #include <QFile>
+#include <QFileDialog>
+#include <QMessageBox>
 
 #include <fdt-parser.hpp>
 #include <iostream>
@@ -76,8 +78,6 @@ MainWindow::MainWindow(QWidget *parent)
     });
 }
 
-#include <QFileDialog>
-
 void MainWindow::open_dialog() {
     const QStringList filters{
         tr("FDT files (*.dtb *.dtbo)"),
@@ -85,13 +85,14 @@ void MainWindow::open_dialog() {
         tr("Any files (*.*)"),
     };
 
-    auto fileName = QFileDialog::getOpenFileName(this,
+    auto file_path = QFileDialog::getOpenFileName(this,
         tr("Open Flattened Device Tree"), QDir::homePath(), filters.join(";;"));
 
-    if (fileName.isEmpty())
+    if (file_path.isEmpty())
         return;
 
-    open(fileName);
+    if (!open(file_path))
+        QMessageBox::critical(this, tr("Invalid FDT format"), tr("Unable to parse %1").arg(file_path));
 }
 
 bool MainWindow::open(const QString &path) {
@@ -99,12 +100,13 @@ bool MainWindow::open(const QString &path) {
     if (!file.open(QIODevice::ReadOnly))
         return false;
 
+    QFileInfo info(path);
     auto datamap = file.readAll();
 
     fdt_generator generator;
 
     auto root = new QTreeWidgetItem(m_ui->treeWidget);
-    root->setText(0, "simple.dtb");
+    root->setText(0, info.fileName());
 
     std::stack<QTreeWidgetItem *> tree_stack;
     tree_stack.emplace(root);
@@ -132,7 +134,12 @@ bool MainWindow::open(const QString &path) {
 
     fdt_parser parser(datamap.data(), datamap.size(), generator);
 
-    return parser.is_valid();
+    if (!parser.is_valid()) {
+        delete root;
+        return false;
+    }
+
+    return true;
 }
 
 void MainWindow::update_fdt_path(QTreeWidgetItem *item) {
