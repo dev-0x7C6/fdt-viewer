@@ -23,6 +23,6 @@ root@host # make install
 ```
 
 #### Known bugs
-- binary data-types are not showing properly 
+- presentation of data-types is under development
 
 ![image](https://devwork.space/wp-content/uploads/2020/12/fdt_viewer_2020-12012.png)
