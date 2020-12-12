@@ -103,14 +103,21 @@ bool MainWindow::open(const QString &path) {
 
     auto root = new QTreeWidgetItem(m_ui->treeWidget);
     root->setText(0, info.fileName());
-    root->setData(0, Qt::UserRole, info.absoluteFilePath());
+    root->setData(0, Qt::UserRole + 1, info.absoluteFilePath());
 
     std::stack<QTreeWidgetItem *> tree_stack;
-    tree_stack.emplace(root);
 
-    generator.begin_node = [&tree_stack](std::string_view &&name) {
-        auto child = new QTreeWidgetItem(tree_stack.top());
-        child->setText(0, QString::fromStdString(name.data()));
+    generator.begin_node = [&](std::string_view &&name) {
+        auto child = [&]() {
+            if (tree_stack.empty())
+                return root;
+            else
+                return new QTreeWidgetItem(tree_stack.top());
+        }();
+
+        if (child->text(0).isEmpty())
+            child->setText(0, QString::fromStdString(name.data()));
+
         tree_stack.emplace(child);
     };
 
@@ -152,7 +159,7 @@ void MainWindow::update_fdt_path(QTreeWidgetItem *item) {
         root = root->parent();
     }
 
-    m_ui->statusbar->showMessage("file://" + root->data(0, Qt::UserRole).toString());
+    m_ui->statusbar->showMessage("file://" + root->data(0, Qt::UserRole + 1).toString());
     m_ui->path->setText("fdt://" + path);
 }
 
