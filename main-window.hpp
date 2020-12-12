@@ -17,7 +17,9 @@ public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
 
-    void open_dialog();
+    void open_file_dialog();
+    void open_directory_dialog();
+
     bool open(const QString &path);
 
 private:

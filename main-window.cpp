@@ -6,6 +6,7 @@
 #include <QFile>
 #include <QFileDialog>
 #include <QMessageBox>
+#include <QDirIterator>
 
 #include <endian-conversions.hpp>
 #include <fdt-parser.hpp>
@@ -57,12 +58,15 @@ MainWindow::MainWindow(QWidget *parent)
 
     auto file_menu = m_ui->menubar->addMenu(tr("&File"));
     auto file_menu_open = new QAction("Open");
+    auto file_menu_open_dir = new QAction("Open directory");
     auto file_menu_close = new QAction("Close");
     file_menu->addAction(file_menu_open);
+    file_menu->addAction(file_menu_open_dir);
     file_menu->addAction(file_menu_close);
     file_menu_open->setShortcut(QKeySequence::Open);
     file_menu_close->setShortcut(QKeySequence::Close);
-    connect(file_menu_open, &QAction::triggered, this, &MainWindow::open_dialog);
+    connect(file_menu_open, &QAction::triggered, this, &MainWindow::open_file_dialog);
+    connect(file_menu_open_dir, &QAction::triggered, this, &MainWindow::open_directory_dialog);
     connect(file_menu_close, &QAction::triggered, this, &MainWindow::close);
 
     connect(m_ui->treeWidget, &QTreeWidget::itemClicked, [this](QTreeWidgetItem *item, auto...) {
@@ -77,7 +81,7 @@ MainWindow::MainWindow(QWidget *parent)
     });
 }
 
-void MainWindow::open_dialog() {
+void MainWindow::open_file_dialog() {
     const QStringList filters{
         tr("FDT files (*.dtb *.dtbo)"),
         tr("FDT overlay files (*.dtbo)"),
@@ -95,6 +99,24 @@ void MainWindow::open_dialog() {
     for (auto &&path : dialog.selectedFiles())
         if (!open(path))
             QMessageBox::critical(this, tr("Invalid FDT format"), tr("Unable to parse %1").arg(path));
+}
+
+void MainWindow::open_directory_dialog() {
+    QFileDialog dialog(this);
+    dialog.setFileMode(QFileDialog::Directory);
+    dialog.setWindowTitle(tr("Open Flattened Device Tree"));
+    dialog.setDirectory(QDir::homePath());
+    if (dialog.exec() == QDialog::Rejected)
+        return;
+
+    for (auto &&dir : dialog.selectedFiles()) {
+        QDirIterator iter(dir, {"*.dtb", "*.dtbo"}, QDir::Files, QDirIterator::Subdirectories);
+        while (iter.hasNext()) {
+            iter.next();
+            if (!open(iter.filePath()))
+                QMessageBox::critical(this, tr("Invalid FDT format"), tr("Unable to parse %1").arg(iter.filePath()));
+        }
+    }
 }
 
 bool MainWindow::open(const QString &path) {
