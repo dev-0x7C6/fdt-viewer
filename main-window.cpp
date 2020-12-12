@@ -9,6 +9,7 @@
 #include <QDirIterator>
 
 #include <endian-conversions.hpp>
+#include <dialogs.hpp>
 #include <fdt-parser.hpp>
 
 #include <iostream>
@@ -65,8 +66,12 @@ MainWindow::MainWindow(QWidget *parent)
     file_menu->addAction(file_menu_close);
     file_menu_open->setShortcut(QKeySequence::Open);
     file_menu_close->setShortcut(QKeySequence::Close);
-    connect(file_menu_open, &QAction::triggered, this, &MainWindow::open_file_dialog);
-    connect(file_menu_open_dir, &QAction::triggered, this, &MainWindow::open_directory_dialog);
+    connect(file_menu_open, &QAction::triggered, this, [this]() {
+        fdt::open_file_dialog(this, [this](auto &&...values) { open_file(std::forward<decltype(values)>(values)...); });
+    });
+    connect(file_menu_open_dir, &QAction::triggered, this, [this]() {
+        fdt::open_directory_dialog(this, [this](auto &&...values) { open_file(std::forward<decltype(values)>(values)...); });
+    });
     connect(file_menu_close, &QAction::triggered, this, &MainWindow::close);
 
     connect(m_ui->treeWidget, &QTreeWidget::itemClicked, [this](QTreeWidgetItem *item, auto...) {
@@ -79,33 +84,6 @@ MainWindow::MainWindow(QWidget *parent)
             m_ui->textBrowser->append(present(property));
         }
     });
-}
-
-void MainWindow::open_file_dialog() {
-    const QStringList filters{
-        tr("FDT files (*.dtb *.dtbo)"),
-        tr("FDT overlay files (*.dtbo)"),
-        tr("Any files (*.*)"),
-    };
-
-    QFileDialog dialog(this);
-    dialog.setFileMode(QFileDialog::ExistingFiles);
-    dialog.setWindowTitle(tr("Open Flattened Device Tree"));
-    dialog.setDirectory(QDir::homePath());
-    dialog.setNameFilter(filters.join(";;"));
-    if (dialog.exec() == QDialog::Accepted)
-        for (auto &&path : dialog.selectedFiles())
-            open_file(path);
-}
-
-void MainWindow::open_directory_dialog() {
-    QFileDialog dialog(this);
-    dialog.setFileMode(QFileDialog::Directory);
-    dialog.setWindowTitle(tr("Open Flattened Device Tree"));
-    dialog.setDirectory(QDir::homePath());
-    if (dialog.exec() == QDialog::Accepted)
-        for (auto &&dir : dialog.selectedFiles())
-            open_directory(dir);
 }
 
 void MainWindow::open_directory(const string &path) {

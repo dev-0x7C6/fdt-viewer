@@ -24,6 +24,8 @@ add_executable(fdt-viewer
     main-window.cpp
     main-window.hpp
     main-window.ui
+    dialogs.cpp
+    dialogs.hpp
     main.cpp
     types.hpp
 )
