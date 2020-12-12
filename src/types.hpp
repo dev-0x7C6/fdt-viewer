@@ -12,16 +12,22 @@ using u32 = std::uint32_t;
 using u64 = std::uint64_t;
 using u8 = std::uint8_t;
 
-class QString;
-class QStringList;
+class QByteArray;
+class QDirIterator;
 class QFile;
 class QFileInfo;
-class QDirIterator;
+class QString;
+class QStringList;
+class QTreeWidget;
+class QTreeWidgetItem;
 class QWidget;
 
-using string = QString;
-using string_list = QStringList;
+using byte_array = QByteArray;
+using dir_iterator = QDirIterator;
 using file = QFile;
 using file_info = QFileInfo;
-using dir_iterator = QDirIterator;
+using string = QString;
+using string_list = QStringList;
+using tree_widget = QTreeWidget;
+using tree_widget_item = QTreeWidgetItem;
 using widget = QWidget;

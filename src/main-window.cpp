@@ -8,27 +8,12 @@
 #include <QMessageBox>
 #include <QDirIterator>
 
-#include <endian-conversions.hpp>
 #include <dialogs.hpp>
+#include <endian-conversions.hpp>
 #include <fdt-parser.hpp>
-
-#include <iostream>
-#include <stack>
+#include <fdt-view.hpp>
 
 using namespace Window;
-
-struct qt_fdt_property {
-    QString name;
-    QByteArray data;
-};
-
-using qt_fdt_properties = QList<qt_fdt_property>;
-
-Q_DECLARE_METATYPE(qt_fdt_property)
-Q_DECLARE_METATYPE(qt_fdt_properties)
-
-constexpr auto QT_ROLE_PROPERTY = Qt::UserRole;
-constexpr auto QT_ROLE_FILEPATH = Qt::UserRole + 1;
 
 string present_u32be(const QByteArray &data) {
     string ret;
@@ -104,54 +89,7 @@ bool MainWindow::open(const QString &path) {
     if (!file.open(QIODevice::ReadOnly))
         return false;
 
-    QFileInfo info(path);
-    auto datamap = file.readAll();
-
-    fdt_generator generator;
-
-    auto root = new QTreeWidgetItem(m_ui->treeWidget);
-    root->setText(0, info.fileName());
-    root->setData(0, QT_ROLE_FILEPATH, info.absoluteFilePath());
-
-    std::stack<QTreeWidgetItem *> tree_stack;
-
-    generator.begin_node = [&](std::string_view &&name) {
-        auto child = [&]() {
-            if (tree_stack.empty())
-                return root;
-            else
-                return new QTreeWidgetItem(tree_stack.top());
-        }();
-
-        if (child->text(0).isEmpty())
-            child->setText(0, QString::fromStdString(name.data()));
-
-        tree_stack.emplace(child);
-    };
-
-    generator.end_node = [&tree_stack]() {
-        tree_stack.pop();
-    };
-
-    generator.insert_property = [&tree_stack](std::string_view &&name, std::string_view &&data) {
-        auto current = tree_stack.top();
-        QVariant values = current->data(0, QT_ROLE_PROPERTY);
-        auto properties = values.value<qt_fdt_properties>();
-        qt_fdt_property property;
-        property.name = QString::fromStdString(name.data());
-        property.data = QByteArray(data.data(), data.size());
-        properties << property;
-        current->setData(0, QT_ROLE_PROPERTY, QVariant::fromValue(properties));
-    };
-
-    fdt_parser parser(datamap.data(), datamap.size(), generator);
-
-    if (!parser.is_valid()) {
-        delete root;
-        return false;
-    }
-
-    return true;
+    return fdt::fdt_view_prepare(m_ui->treeWidget, file.readAll(), {path});
 }
 
 void MainWindow::update_fdt_path(QTreeWidgetItem *item) {
