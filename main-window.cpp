@@ -107,6 +107,7 @@ bool MainWindow::open(const QString &path) {
 
     auto root = new QTreeWidgetItem(m_ui->treeWidget);
     root->setText(0, info.fileName());
+    root->setData(0, Qt::UserRole, info.absoluteFilePath());
 
     std::stack<QTreeWidgetItem *> tree_stack;
     tree_stack.emplace(root);
@@ -150,8 +151,12 @@ void MainWindow::update_fdt_path(QTreeWidgetItem *item) {
 
     QString path = item->text(0);
     auto root = item;
-    while (root = root->parent())
-        path = root->text(0) + "/" + path;
+    while (root->parent()) {
+        path = root->parent()->text(0) + "/" + path;
+        root = root->parent();
+    }
+
+    m_ui->statusbar->showMessage("file://" + root->data(0, Qt::UserRole).toString());
 
     m_ui->path->setText("fdt://" + path);
 }
