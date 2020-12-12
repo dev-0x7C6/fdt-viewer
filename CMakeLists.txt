@@ -1,0 +1,28 @@
+cmake_minimum_required(VERSION 3.18)
+
+project(fdt-viewer VERSION 0.2.0 LANGUAGES CXX)
+
+set(CMAKE_INCLUDE_CURRENT_DIR ON)
+
+set(CMAKE_AUTOUIC ON)
+set(CMAKE_AUTOMOC ON)
+set(CMAKE_AUTORCC ON)
+
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+find_package(Qt5 COMPONENTS Widgets REQUIRED)
+
+configure_file(config.h.in config.h)
+
+add_executable(fdt-viewer
+    fdt-header.hpp
+    fdt-parser.cpp
+    fdt-parser.hpp
+    main-window.cpp
+    main-window.hpp
+    main-window.ui
+    main.cpp
+)
+
+target_link_libraries(fdt-viewer PRIVATE Qt5::Widgets)
