@@ -70,7 +70,7 @@ MainWindow::MainWindow(QWidget *parent)
         fdt::open_file_dialog(this, [this](auto &&...values) { open_file(std::forward<decltype(values)>(values)...); });
     });
     connect(file_menu_open_dir, &QAction::triggered, this, [this]() {
-        fdt::open_directory_dialog(this, [this](auto &&...values) { open_file(std::forward<decltype(values)>(values)...); });
+        fdt::open_directory_dialog(this, [this](auto &&...values) { open_directory(std::forward<decltype(values)>(values)...); });
     });
     connect(file_menu_close, &QAction::triggered, this, &MainWindow::close);
 
