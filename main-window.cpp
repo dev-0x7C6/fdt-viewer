@@ -79,8 +79,14 @@ MainWindow::MainWindow(QWidget *parent)
 #include <QFileDialog>
 
 void MainWindow::open_dialog() {
+    const QStringList filters{
+        tr("FDT files (*.dtb *.dtbo)"),
+        tr("FDT overlay files (*.dtbo)"),
+        tr("Any files (*.*)"),
+    };
+
     auto fileName = QFileDialog::getOpenFileName(this,
-        tr("Open Flattened Device Tree"), QDir::homePath(), tr("FDT files (*.dtb)"));
+        tr("Open Flattened Device Tree"), QDir::homePath(), filters.join(";;"));
 
     if (fileName.isEmpty())
         return;
