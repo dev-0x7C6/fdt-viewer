@@ -1,6 +1,8 @@
 #include "main-window.hpp"
 
 #include <QApplication>
+#include <QCommandLineOption>
+#include <QCommandLineParser>
 
 #include <config.h>
 
@@ -14,8 +16,24 @@ int main(int argc, char *argv[]) {
     application.setApplicationName(PROJECT_NAME);
     application.setApplicationVersion(version_string);
     application.setApplicationDisplayName(QString("Flattened Device Tree Viewer %1").arg(version_string));
+
+    QCommandLineParser parser;
+    parser.addHelpOption();
+    parser.addVersionOption();
+    parser.addOptions({//
+        {{"f", "file"}, QCoreApplication::translate("main", "open file."), QCoreApplication::translate("main", "file")},
+        {{"d", "directory"}, QCoreApplication::translate("main", "open directory."), QCoreApplication::translate("main", "directory")}});
+
+    parser.process(application);
+
     Window::MainWindow window;
     window.show();
-    window.open_file_dialog();
+
+    if (parser.isSet("directory"))
+        window.open_directory(parser.value("directory"));
+
+    if (parser.isSet("file"))
+        window.open_file(parser.value("file"));
+
     return application.exec();
 }

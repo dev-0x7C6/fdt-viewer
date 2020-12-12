@@ -1,5 +1,7 @@
 #pragma once
 
+#include <types.hpp>
+
 #include <QMainWindow>
 #include <memory>
 
@@ -20,7 +22,10 @@ public:
     void open_file_dialog();
     void open_directory_dialog();
 
-    bool open(const QString &path);
+    void open_directory(const string &path);
+    void open_file(const string &path);
+
+    bool open(const string &path);
 
 private:
     void update_fdt_path(QTreeWidgetItem *item = nullptr);

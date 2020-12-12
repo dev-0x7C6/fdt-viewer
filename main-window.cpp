@@ -93,12 +93,9 @@ void MainWindow::open_file_dialog() {
     dialog.setWindowTitle(tr("Open Flattened Device Tree"));
     dialog.setDirectory(QDir::homePath());
     dialog.setNameFilter(filters.join(";;"));
-    if (dialog.exec() == QDialog::Rejected)
-        return;
-
-    for (auto &&path : dialog.selectedFiles())
-        if (!open(path))
-            QMessageBox::critical(this, tr("Invalid FDT format"), tr("Unable to parse %1").arg(path));
+    if (dialog.exec() == QDialog::Accepted)
+        for (auto &&path : dialog.selectedFiles())
+            open_file(path);
 }
 
 void MainWindow::open_directory_dialog() {
@@ -106,17 +103,22 @@ void MainWindow::open_directory_dialog() {
     dialog.setFileMode(QFileDialog::Directory);
     dialog.setWindowTitle(tr("Open Flattened Device Tree"));
     dialog.setDirectory(QDir::homePath());
-    if (dialog.exec() == QDialog::Rejected)
-        return;
+    if (dialog.exec() == QDialog::Accepted)
+        for (auto &&dir : dialog.selectedFiles())
+            open_directory(dir);
+}
 
-    for (auto &&dir : dialog.selectedFiles()) {
-        QDirIterator iter(dir, {"*.dtb", "*.dtbo"}, QDir::Files);
-        while (iter.hasNext()) {
-            iter.next();
-            if (!open(iter.filePath()))
-                QMessageBox::critical(this, tr("Invalid FDT format"), tr("Unable to parse %1").arg(iter.filePath()));
-        }
+void MainWindow::open_directory(const string &path) {
+    QDirIterator iter(path, {"*.dtb", "*.dtbo"}, QDir::Files);
+    while (iter.hasNext()) {
+        iter.next();
+        open_file(iter.filePath());
     }
+}
+
+void MainWindow::open_file(const string &path) {
+    if (!open(path))
+        QMessageBox::critical(this, tr("Invalid FDT format"), tr("Unable to parse %1").arg(path));
 }
 
 bool MainWindow::open(const QString &path) {
