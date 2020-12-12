@@ -49,8 +49,6 @@ MainWindow::MainWindow(QWidget *parent)
             m_ui->textBrowser->append(property.name + " = <" + property.data + ">");
         }
     });
-
-    open(QDir::homePath() + QDir::separator() + "sample.dtb");
 }
 
 #include <QFileDialog>
