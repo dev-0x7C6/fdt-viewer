@@ -100,6 +100,12 @@ MainWindow::MainWindow(QWidget *parent)
     file_menu_close->setShortcut(QKeySequence::Close);
     file_menu_open->setShortcut(QKeySequence::Open);
     file_menu_quit->setShortcut(QKeySequence::Quit);
+    file_menu_close->setIcon(QIcon::fromTheme("document-close"));
+    file_menu_open->setIcon(QIcon::fromTheme("document-open"));
+    file_menu_open_dir->setIcon(QIcon::fromTheme("folder-open"));
+    file_menu_quit->setIcon(QIcon::fromTheme("application-exit"));
+    help_menu_about_qt->setIcon(QIcon::fromTheme("help-about"));
+
     connect(help_menu_about_qt, &QAction::triggered, []() { QApplication::aboutQt(); });
 
     connect(file_menu_open, &QAction::triggered, this, [this]() {
