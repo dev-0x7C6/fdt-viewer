@@ -29,9 +29,11 @@ public:
 
 private:
     void update_fdt_path(QTreeWidgetItem *item = nullptr);
+    void update_view();
 
 private:
     std::unique_ptr<Ui::MainWindow> m_ui;
+    tree_widget_item *m_fdt{nullptr};
 };
 
 } // namespace Window

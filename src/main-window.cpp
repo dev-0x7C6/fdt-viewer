@@ -86,11 +86,15 @@ MainWindow::MainWindow(QWidget *parent)
     auto file_menu = m_ui->menubar->addMenu(tr("&File"));
     auto file_menu_open = new QAction("Open");
     auto file_menu_open_dir = new QAction("Open directory");
+    auto file_menu_close = new QAction("Close");
     auto file_menu_quit = new QAction("Quit");
     file_menu->addAction(file_menu_open);
     file_menu->addAction(file_menu_open_dir);
     file_menu->addSeparator();
+    file_menu->addAction(file_menu_close);
+    file_menu->addSeparator();
     file_menu->addAction(file_menu_quit);
+    file_menu_close->setShortcut(QKeySequence::Close);
     file_menu_open->setShortcut(QKeySequence::Open);
     file_menu_quit->setShortcut(QKeySequence::Quit);
     connect(file_menu_open, &QAction::triggered, this, [this]() {
@@ -99,24 +103,20 @@ MainWindow::MainWindow(QWidget *parent)
     connect(file_menu_open_dir, &QAction::triggered, this, [this]() {
         fdt::open_directory_dialog(this, [this](auto &&...values) { open_directory(std::forward<decltype(values)>(values)...); });
     });
+
     connect(file_menu_quit, &QAction::triggered, this, &MainWindow::close);
-
-    connect(m_ui->treeWidget, &QTreeWidget::itemActivated, [this](QTreeWidgetItem *item, auto...) {
-        m_ui->textBrowser->clear();
-        update_fdt_path(item);
-
-        QVariant values = item->data(0, Qt::UserRole);
-        auto name = item->data(0, Qt::DisplayRole).toString();
-        auto properties = values.value<qt_fdt_properties>();
-
-        string ret;
-        ret.reserve(16 * 1024);
-        ret += name + " {\n";
-        for (auto &&property : properties)
-            ret += "    " + present(property) + "\n";
-        ret += "};";
-        m_ui->textBrowser->setText(ret);
+    connect(file_menu_close, &QAction::triggered, this, [this]() {
+        if (m_fdt) {
+            delete m_fdt;
+            m_fdt = nullptr;
+            m_ui->textBrowser->clear();
+            m_ui->statusbar->clearMessage();
+            m_ui->path->clear();
+            update_view();
+        }
     });
+
+    connect(m_ui->treeWidget, &QTreeWidget::itemSelectionChanged, this, &MainWindow::update_view);
 }
 
 void MainWindow::open_directory(const string &path) {
@@ -153,8 +153,32 @@ void MainWindow::update_fdt_path(QTreeWidgetItem *item) {
         root = root->parent();
     }
 
+    m_fdt = root;
+
     m_ui->statusbar->showMessage("file://" + root->data(0, QT_ROLE_FILEPATH).toString());
     m_ui->path->setText("fdt://" + path);
+}
+
+void MainWindow::update_view() {
+    if (m_ui->treeWidget->selectedItems().isEmpty())
+        return;
+
+    auto item = m_ui->treeWidget->selectedItems().first();
+
+    m_ui->textBrowser->clear();
+    update_fdt_path(item);
+
+    QVariant values = item->data(0, Qt::UserRole);
+    auto name = item->data(0, Qt::DisplayRole).toString();
+    auto properties = values.value<qt_fdt_properties>();
+
+    string ret;
+    ret.reserve(16 * 1024);
+    ret += name + " {\n";
+    for (auto &&property : properties)
+        ret += "    " + present(property) + "\n";
+    ret += "};";
+    m_ui->textBrowser->setText(ret);
 }
 
 MainWindow::~MainWindow() = default;
