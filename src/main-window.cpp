@@ -84,10 +84,13 @@ MainWindow::MainWindow(QWidget *parent)
     m_ui->splitter->setStretchFactor(1, 5);
 
     auto file_menu = m_ui->menubar->addMenu(tr("&File"));
+    auto help_menu = m_ui->menubar->addMenu(tr("&Help"));
     auto file_menu_open = new QAction("Open");
     auto file_menu_open_dir = new QAction("Open directory");
     auto file_menu_close = new QAction("Close");
     auto file_menu_quit = new QAction("Quit");
+    auto help_menu_about_qt = new QAction("About Qt");
+    help_menu->addAction(help_menu_about_qt);
     file_menu->addAction(file_menu_open);
     file_menu->addAction(file_menu_open_dir);
     file_menu->addSeparator();
@@ -97,6 +100,8 @@ MainWindow::MainWindow(QWidget *parent)
     file_menu_close->setShortcut(QKeySequence::Close);
     file_menu_open->setShortcut(QKeySequence::Open);
     file_menu_quit->setShortcut(QKeySequence::Quit);
+    connect(help_menu_about_qt, &QAction::triggered, []() { QApplication::aboutQt(); });
+
     connect(file_menu_open, &QAction::triggered, this, [this]() {
         fdt::open_file_dialog(this, [this](auto &&...values) { open_file(std::forward<decltype(values)>(values)...); });
     });
