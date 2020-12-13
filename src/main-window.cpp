@@ -3,10 +3,10 @@
 
 #include <QByteArray>
 #include <QDir>
-#include <QFile>
-#include <QFileDialog>
-#include <QMessageBox>
 #include <QDirIterator>
+#include <QFile>
+#include <QMessageBox>
+#include <QRegExp>
 
 #include <dialogs.hpp>
 #include <endian-conversions.hpp>
@@ -28,10 +28,47 @@ string present_u32be(const QByteArray &data) {
 }
 
 string present(const qt_fdt_property &property) {
-    string ret;
-    ret += property.name + " = ";
-    ret += "<" + present_u32be(property.data) + ">;";
-    return ret;
+    auto &&name = property.name;
+    auto &&data = property.data;
+
+    auto result = [&](string &&value) {
+        return name + " = <" + value + ">;";
+    };
+
+    if (property_map.contains(name)) {
+        const property_info info = property_map.value(name);
+        if (property_type::string == info.type)
+            return result({data});
+
+        if (property_type::number == info.type)
+            return result(string::number(u32_be(data.data())));
+    }
+
+    const static regexp cells_regexp("^#.*-cells$");
+    const static regexp names_regexp("^.*-names");
+
+    if (cells_regexp.exactMatch(name))
+        return result(string::number(u32_be(data.data())));
+
+    if (names_regexp.exactMatch(name)) {
+        auto lines = data.split(0);
+        lines.removeLast();
+
+        string ret;
+        for (auto i = 0; i < lines.count(); ++i) {
+            if (i == lines.count() - 1)
+                ret += lines[i];
+            else
+                ret += lines[i] + ", ";
+        }
+
+        return result(std::move(ret));
+    }
+
+    if (std::count_if(data.begin(), data.end(), [](auto &&value) { return value == 0x00; }) == 1 &&
+        data.back() == 0x00) return result({property.data});
+
+    return result(present_u32be(property.data));
 }
 
 MainWindow::MainWindow(QWidget *parent)

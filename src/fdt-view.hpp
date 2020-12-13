@@ -1,7 +1,9 @@
 #pragma once
 
-#include <types.hpp>
 #include <QMetaType>
+
+#include <fdt-property-types.hpp>
+#include <types.hpp>
 
 struct qt_fdt_property {
     QString name;

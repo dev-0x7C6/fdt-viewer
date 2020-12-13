@@ -1,7 +1,8 @@
 #pragma once
 
 #include <string>
-#include <unordered_map>
+#include <types.hpp>
+#include <QHash>
 
 enum class property_type {
     hex,
@@ -24,10 +25,8 @@ struct property_info {
     word_size word{word_size::_8};
 };
 
-const static std::unordered_map<std::string, property_info> property_map = {
-    {"#address-cells", {property_type::number, word_size::_32}},
-    {"#size-cells", {property_type::number, word_size::_32}},
+const static QHash<string, property_info> property_map = {
     {"compatible", {property_type::string, word_size::custom}},
     {"phandle", {property_type::number, word_size::_32}},
     {"pinctrl-names", {property_type::multiline, word_size::custom}},
-}
+};
