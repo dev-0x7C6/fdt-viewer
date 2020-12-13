@@ -86,19 +86,20 @@ MainWindow::MainWindow(QWidget *parent)
     auto file_menu = m_ui->menubar->addMenu(tr("&File"));
     auto file_menu_open = new QAction("Open");
     auto file_menu_open_dir = new QAction("Open directory");
-    auto file_menu_close = new QAction("Close");
+    auto file_menu_quit = new QAction("Quit");
     file_menu->addAction(file_menu_open);
     file_menu->addAction(file_menu_open_dir);
-    file_menu->addAction(file_menu_close);
+    file_menu->addSeparator();
+    file_menu->addAction(file_menu_quit);
     file_menu_open->setShortcut(QKeySequence::Open);
-    file_menu_close->setShortcut(QKeySequence::Close);
+    file_menu_quit->setShortcut(QKeySequence::Quit);
     connect(file_menu_open, &QAction::triggered, this, [this]() {
         fdt::open_file_dialog(this, [this](auto &&...values) { open_file(std::forward<decltype(values)>(values)...); });
     });
     connect(file_menu_open_dir, &QAction::triggered, this, [this]() {
         fdt::open_directory_dialog(this, [this](auto &&...values) { open_directory(std::forward<decltype(values)>(values)...); });
     });
-    connect(file_menu_close, &QAction::triggered, this, &MainWindow::close);
+    connect(file_menu_quit, &QAction::triggered, this, &MainWindow::close);
 
     connect(m_ui->treeWidget, &QTreeWidget::itemActivated, [this](QTreeWidgetItem *item, auto...) {
         m_ui->textBrowser->clear();
