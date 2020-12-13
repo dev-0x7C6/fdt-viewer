@@ -101,10 +101,16 @@ MainWindow::MainWindow(QWidget *parent)
         update_fdt_path(item);
 
         QVariant values = item->data(0, Qt::UserRole);
+        auto name = item->data(0, Qt::DisplayRole).toString();
         auto properties = values.value<qt_fdt_properties>();
-        for (auto &&property : properties) {
-            m_ui->textBrowser->append(present(property));
-        }
+
+        string ret;
+        ret.reserve(16 * 1024);
+        ret += name + " {\n";
+        for (auto &&property : properties)
+            ret += "    " + present(property) + "\n";
+        ret += "};";
+        m_ui->textBrowser->setText(ret);
     });
 }
 
