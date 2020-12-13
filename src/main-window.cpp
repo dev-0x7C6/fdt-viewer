@@ -35,10 +35,14 @@ string present(const qt_fdt_property &property) {
         return name + " = <" + value + ">;";
     };
 
+    auto result_str = [&](string &&value) {
+        return name + " = \"" + value + "\";";
+    };
+
     if (property_map.contains(name)) {
         const property_info info = property_map.value(name);
         if (property_type::string == info.type)
-            return result({data});
+            return result_str({data});
 
         if (property_type::number == info.type)
             return result(string::number(u32_be(data.data())));
@@ -62,11 +66,11 @@ string present(const qt_fdt_property &property) {
                 ret += lines[i] + ", ";
         }
 
-        return result(std::move(ret));
+        return result_str(std::move(ret));
     }
 
     if (std::count_if(data.begin(), data.end(), [](auto &&value) { return value == 0x00; }) == 1 &&
-        data.back() == 0x00) return result({property.data});
+        data.back() == 0x00) return result_str({property.data});
 
     return result(present_u32be(property.data));
 }
