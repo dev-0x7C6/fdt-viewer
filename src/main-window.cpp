@@ -100,7 +100,7 @@ MainWindow::MainWindow(QWidget *parent)
     });
     connect(file_menu_close, &QAction::triggered, this, &MainWindow::close);
 
-    connect(m_ui->treeWidget, &QTreeWidget::itemClicked, [this](QTreeWidgetItem *item, auto...) {
+    connect(m_ui->treeWidget, &QTreeWidget::itemActivated, [this](QTreeWidgetItem *item, auto...) {
         m_ui->textBrowser->clear();
         update_fdt_path(item);
 
