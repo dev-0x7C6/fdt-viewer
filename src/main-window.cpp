@@ -143,6 +143,31 @@ void MainWindow::open_file(const string &path) {
         QMessageBox::critical(this, tr("Invalid FDT format"), tr("Unable to parse %1").arg(path));
 }
 
+void MainWindow::render(tree_widget_item *item, string &ret, int depth) {
+    string depth_str;
+    depth_str.fill(' ', depth * 4);
+
+    QVariant values = item->data(0, Qt::UserRole);
+    auto properties = values.value<qt_fdt_properties>();
+
+    ret += depth_str + item->data(0, Qt::DisplayRole).toString() + " {\n";
+
+    for (auto &&property : properties)
+        ret += depth_str + "    " + present(property) + "\n";
+
+    if (!properties.isEmpty() && item->childCount())
+        ret += "\n";
+
+    for (auto i = 0; i < item->childCount(); ++i) {
+        render(item->child(i), ret, depth + 1);
+
+        if (item->childCount() - 1 != i)
+            ret += "\n";
+    }
+
+    ret += depth_str + "};\n";
+}
+
 bool MainWindow::open(const QString &path) {
     QFile file(path);
     if (!file.open(QIODevice::ReadOnly))
@@ -170,6 +195,8 @@ void MainWindow::update_fdt_path(QTreeWidgetItem *item) {
     m_ui->path->setText("fdt://" + path);
 }
 
+constexpr auto VIEW_TEXT_CACHE_SIZE = 1024 * 1024;
+
 void MainWindow::update_view() {
     if (m_ui->treeWidget->selectedItems().isEmpty())
         return;
@@ -179,16 +206,9 @@ void MainWindow::update_view() {
     m_ui->textBrowser->clear();
     update_fdt_path(item);
 
-    QVariant values = item->data(0, Qt::UserRole);
-    auto name = item->data(0, Qt::DisplayRole).toString();
-    auto properties = values.value<qt_fdt_properties>();
-
     string ret;
-    ret.reserve(16 * 1024);
-    ret += name + " {\n";
-    for (auto &&property : properties)
-        ret += "    " + present(property) + "\n";
-    ret += "};";
+    ret.reserve(VIEW_TEXT_CACHE_SIZE);
+    render(item, ret);
     m_ui->textBrowser->setText(ret);
 }
 
