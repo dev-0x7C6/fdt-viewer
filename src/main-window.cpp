@@ -15,12 +15,18 @@
 
 using namespace Window;
 
+constexpr auto BINARY_PREVIEW_LIMIT = 2048;
+
 string present_u32be(const QByteArray &data) {
     string ret;
 
     auto array = reinterpret_cast<u8 *>(const_cast<char *>(data.data()));
     for (auto i = 0; i < data.size(); ++i) {
         ret += "0x" + QString::number(array[i], 16).rightJustified(2, '0').toUpper() + " ";
+        if (i == BINARY_PREVIEW_LIMIT) {
+            ret += "... ";
+            break;
+        }
     }
     ret.remove(ret.size() - 1, 1);
 
