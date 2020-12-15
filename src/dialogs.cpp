@@ -7,7 +7,9 @@
 
 void fdt::open_file_dialog(widget *parent, path_callable &&callable) {
     const string_list filters{
-        parent->tr("FDT files (*.dtb *.dtbo)"),
+        parent->tr("FDT formats (*.dtb *.dtbo *.itb)"),
+        parent->tr("FIT container (*.itb)"),
+        parent->tr("FDT file (*.dtb)"),
         parent->tr("FDT overlay files (*.dtbo)"),
         parent->tr("Any files (*.*)"),
     };
