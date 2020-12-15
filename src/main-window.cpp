@@ -163,21 +163,35 @@ void MainWindow::render(tree_widget_item *item, string &ret, int depth) {
     string depth_str;
     depth_str.fill(' ', depth * 4);
 
-    QVariant values = item->data(0, Qt::UserRole);
-    auto properties = values.value<qt_fdt_properties>();
+    QList<tree_widget_item *> nodes;
+    QList<tree_widget_item *> properties;
+
+    for (auto i = 0; i < item->childCount(); ++i) {
+        const auto child = item->child(i);
+        switch (child->data(0, QT_ROLE_NODETYPE).value<NodeType>()) {
+            case NodeType::Node:
+                nodes.append(child);
+                break;
+            case NodeType::Property:
+                properties.append(child);
+                break;
+        }
+    }
 
     ret += depth_str + item->data(0, Qt::DisplayRole).toString() + " {\n";
 
-    for (auto &&property : properties)
+    for (auto item : properties) {
+        const auto property = item->data(0, QT_ROLE_PROPERTY).value<qt_fdt_property>();
         ret += depth_str + "    " + present(property) + "\n";
+    }
 
-    if (!properties.isEmpty() && item->childCount())
+    if (!properties.isEmpty() && !nodes.isEmpty())
         ret += "\n";
 
-    for (auto i = 0; i < item->childCount(); ++i) {
-        render(item->child(i), ret, depth + 1);
+    for (auto i = 0; i < nodes.count(); ++i) {
+        render(nodes.at(i), ret, depth + 1);
 
-        if (item->childCount() - 1 != i)
+        if (nodes.count() - 1 != i)
             ret += "\n";
     }
 
@@ -224,6 +238,7 @@ void MainWindow::update_view() {
 
     string ret;
     ret.reserve(VIEW_TEXT_CACHE_SIZE);
+
     render(item, ret);
     m_ui->textBrowser->setText(ret);
 }

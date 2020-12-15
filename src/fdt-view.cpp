@@ -14,6 +14,8 @@ bool fdt::fdt_view_prepare(tree_widget *target, const byte_array &datamap, const
     auto root = new tree_widget_item(target);
     root->setText(0, info.fileName());
     root->setData(0, QT_ROLE_FILEPATH, info.absoluteFilePath());
+    root->setIcon(0, QIcon::fromTheme("folder-open"));
+    root->setData(0, QT_ROLE_NODETYPE, NodeType::Node);
 
     std::stack<tree_widget_item *> tree_stack;
 
@@ -25,8 +27,11 @@ bool fdt::fdt_view_prepare(tree_widget *target, const byte_array &datamap, const
                 return new tree_widget_item(tree_stack.top());
         }();
 
-        if (child->text(0).isEmpty())
+        if (child->text(0).isEmpty()) {
             child->setText(0, QString::fromStdString(name.data()));
+            child->setIcon(0, QIcon::fromTheme("folder-open"));
+            child->setData(0, QT_ROLE_NODETYPE, NodeType::Node);
+        }
 
         tree_stack.emplace(child);
     };
@@ -36,14 +41,16 @@ bool fdt::fdt_view_prepare(tree_widget *target, const byte_array &datamap, const
     };
 
     generator.insert_property = [&tree_stack](std::string_view &&name, std::string_view &&data) {
-        auto current = tree_stack.top();
-        QVariant values = current->data(0, QT_ROLE_PROPERTY);
-        auto properties = values.value<qt_fdt_properties>();
+        auto item = new tree_widget_item(tree_stack.top());
+
+        item->setText(0, QString::fromStdString(name.data()));
+        item->setIcon(0, QIcon::fromTheme("flag-green"));
+        item->setData(0, QT_ROLE_NODETYPE, NodeType::Property);
+
         qt_fdt_property property;
         property.name = QString::fromStdString(name.data());
         property.data = QByteArray(data.data(), data.size());
-        properties << property;
-        current->setData(0, QT_ROLE_PROPERTY, QVariant::fromValue(properties));
+        item->setData(0, QT_ROLE_PROPERTY, QVariant::fromValue(property));
     };
 
     fdt_parser parser(datamap.data(), datamap.size(), generator);

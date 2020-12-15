@@ -10,13 +10,18 @@ struct qt_fdt_property {
     QByteArray data;
 };
 
-using qt_fdt_properties = QList<qt_fdt_property>;
-
 Q_DECLARE_METATYPE(qt_fdt_property)
-Q_DECLARE_METATYPE(qt_fdt_properties)
 
 constexpr auto QT_ROLE_PROPERTY = Qt::UserRole;
 constexpr auto QT_ROLE_FILEPATH = Qt::UserRole + 1;
+constexpr auto QT_ROLE_NODETYPE = Qt::UserRole + 2;
+
+enum NodeType {
+    Node,
+    Property
+};
+
+Q_DECLARE_METATYPE(NodeType)
 
 namespace fdt {
 
