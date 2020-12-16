@@ -116,10 +116,10 @@ MainWindow::MainWindow(QWidget *parent)
     file_menu_quit->setIcon(QIcon::fromTheme("application-exit"));
     help_menu_about_qt->setIcon(QIcon::fromTheme("help-about"));
 
-    m_ui->textBrowser->setWordWrapMode(QTextOption::NoWrap);
+    m_ui->text_view->setWordWrapMode(QTextOption::NoWrap);
 
     connect(view_menu_word_wrap, &QAction::triggered, [this, view_menu_word_wrap]() {
-        m_ui->textBrowser->setWordWrapMode(view_menu_word_wrap->isChecked() ? QTextOption::WordWrap : QTextOption::NoWrap);
+        m_ui->text_view->setWordWrapMode(view_menu_word_wrap->isChecked() ? QTextOption::WordWrap : QTextOption::NoWrap);
     });
 
     connect(help_menu_about_qt, &QAction::triggered, []() { QApplication::aboutQt(); });
@@ -136,7 +136,7 @@ MainWindow::MainWindow(QWidget *parent)
         if (m_fdt) {
             delete m_fdt;
             m_fdt = nullptr;
-            m_ui->textBrowser->clear();
+            m_ui->text_view->clear();
             m_ui->statusbar->clearMessage();
             m_ui->path->clear();
             update_view();
@@ -231,16 +231,24 @@ void MainWindow::update_view() {
     if (m_ui->treeWidget->selectedItems().isEmpty())
         return;
 
-    auto item = m_ui->treeWidget->selectedItems().first();
+    const auto item = m_ui->treeWidget->selectedItems().first();
 
-    m_ui->textBrowser->clear();
+    const auto type = item->data(0, QT_ROLE_NODETYPE).value<NodeType>();
+    m_ui->preview->setCurrentWidget(NodeType::Node == type ? m_ui->text_view_page : m_ui->property_view_page);
+
+    if (NodeType::Property == type) {
+        const auto property = item->data(0, QT_ROLE_PROPERTY).value<qt_fdt_property>();
+        m_ui->property_as_string_value->setText({property.data.data()});
+    }
+
+    m_ui->text_view->clear();
     update_fdt_path(item);
 
     string ret;
     ret.reserve(VIEW_TEXT_CACHE_SIZE);
 
     render(item, ret);
-    m_ui->textBrowser->setText(ret);
+    m_ui->text_view->setText(ret);
 }
 
 MainWindow::~MainWindow() = default;

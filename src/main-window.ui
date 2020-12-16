@@ -37,10 +37,43 @@
         </property>
        </column>
       </widget>
-      <widget class="QTextBrowser" name="textBrowser">
-       <property name="frameShape">
-        <enum>QFrame::NoFrame</enum>
+      <widget class="QStackedWidget" name="preview">
+       <property name="currentIndex">
+        <number>1</number>
        </property>
+       <widget class="QWidget" name="text_view_page">
+        <layout class="QHBoxLayout" name="horizontalLayout">
+         <property name="spacing">
+          <number>0</number>
+         </property>
+         <property name="leftMargin">
+          <number>0</number>
+         </property>
+         <property name="topMargin">
+          <number>0</number>
+         </property>
+         <property name="rightMargin">
+          <number>0</number>
+         </property>
+         <property name="bottomMargin">
+          <number>0</number>
+         </property>
+         <item>
+          <widget class="QTextBrowser" name="text_view">
+           <property name="frameShape">
+            <enum>QFrame::NoFrame</enum>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+       <widget class="QWidget" name="property_view_page">
+        <layout class="QVBoxLayout" name="verticalLayout_2">
+         <item>
+          <widget class="QLineEdit" name="property_as_string_value"/>
+         </item>
+        </layout>
+       </widget>
       </widget>
      </widget>
     </item>
