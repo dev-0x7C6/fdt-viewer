@@ -13,6 +13,10 @@
 #include <fdt-parser.hpp>
 #include <fdt-view.hpp>
 
+#include <document/qhexdocument.h>
+#include <document/buffer/qmemorybuffer.h>
+#include <qhexview.h>
+
 using namespace Window;
 
 constexpr auto BINARY_PREVIEW_LIMIT = 2048;
@@ -85,6 +89,10 @@ MainWindow::MainWindow(QWidget *parent)
         : QMainWindow(parent)
         , m_ui(std::make_unique<Ui::MainWindow>()) {
     m_ui->setupUi(this);
+
+    m_hexview = new QHexView();
+    m_hexview->setReadOnly(true);
+    m_ui->hexview_layout->addWidget(m_hexview);
 
     m_ui->splitter->setStretchFactor(0, 2);
     m_ui->splitter->setStretchFactor(1, 5);
@@ -238,7 +246,8 @@ void MainWindow::update_view() {
 
     if (NodeType::Property == type) {
         const auto property = item->data(0, QT_ROLE_PROPERTY).value<qt_fdt_property>();
-        m_ui->property_as_string_value->setText({property.data.data()});
+        QHexDocument *document = QHexDocument::fromMemory<QMemoryBuffer>(property.data);
+        m_hexview->setDocument(document);
     }
 
     m_ui->text_view->clear();

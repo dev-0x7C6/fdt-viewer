@@ -5,6 +5,7 @@
 #include <QMainWindow>
 #include <memory>
 
+class QHexView;
 class QTreeWidgetItem;
 
 namespace Window {
@@ -36,6 +37,7 @@ private:
 private:
     std::unique_ptr<Ui::MainWindow> m_ui;
     tree_widget_item *m_fdt{nullptr};
+    QHexView *m_hexview{nullptr};
 };
 
 } // namespace Window

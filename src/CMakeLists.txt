@@ -1,5 +1,7 @@
 configure_file(config.h.in config.h)
 
+add_subdirectory("submodules/qhexview")
+
 add_executable(fdt-viewer
     endian-conversions.hpp
     fdt-header.hpp
@@ -17,5 +19,5 @@ add_executable(fdt-viewer
     types.hpp
 )
 
-target_link_libraries(fdt-viewer PRIVATE Qt5::Widgets)
+target_link_libraries(fdt-viewer PRIVATE Qt5::Widgets qhexview-lib)
 install(TARGETS fdt-viewer RUNTIME DESTINATION bin)
