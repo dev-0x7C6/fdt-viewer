@@ -1,6 +1,11 @@
 # FDT Viewer
 Flattened Device Tree Viewer written in Qt.
 
+#### Supported files
+* \*.dtb - devicetree blob
+* \*.dtbo - devicetree overlay blob
+* \*.itb - fit image container
+
 #### Command line usage
 ```
 Usage: ./fdt-viewer [options]
@@ -22,7 +27,5 @@ user@host # make -j$(nproc)
 root@host # make install
 ```
 
-#### Known bugs
-- presentation of data-types is under development
-
+![image](https://devwork.space/wp-content/uploads/2020/12/fdt_viewer_v050.png)
 ![image](https://devwork.space/wp-content/uploads/2020/12/fdt_viewer_v041.png)
