@@ -27,5 +27,8 @@ user@host # make -j$(nproc)
 root@host # make install
 ```
 
+#### Known bugs
+- presentation of data-types is under development
+
 ![image](https://devwork.space/wp-content/uploads/2020/12/fdt_viewer_v050.png)
 ![image](https://devwork.space/wp-content/uploads/2020/12/fdt_viewer_v041.png)
