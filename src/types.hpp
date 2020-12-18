@@ -12,6 +12,8 @@ using u32 = std::uint32_t;
 using u64 = std::uint64_t;
 using u8 = std::uint8_t;
 
+class QAction;
+class QActionGroup;
 class QByteArray;
 class QDirIterator;
 class QFile;
@@ -23,6 +25,8 @@ class QTreeWidget;
 class QTreeWidgetItem;
 class QWidget;
 
+using action = QAction;
+using action_group = QActionGroup;
 using byte_array = QByteArray;
 using dir_iterator = QDirIterator;
 using file = QFile;

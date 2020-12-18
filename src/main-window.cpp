@@ -6,7 +6,7 @@
 #include <QDirIterator>
 #include <QFile>
 #include <QMessageBox>
-#include <QRegExp>
+#include <QTreeWidget>
 
 #include <dialogs.hpp>
 #include <endian-conversions.hpp>
@@ -23,6 +23,7 @@ MainWindow::MainWindow(QWidget *parent)
         : QMainWindow(parent)
         , m_ui(std::make_unique<Ui::MainWindow>()) {
     m_ui->setupUi(this);
+    m_ui->splitter->setEnabled(false);
 
     m_hexview = new QHexView();
     m_hexview->setReadOnly(true);
@@ -37,6 +38,7 @@ MainWindow::MainWindow(QWidget *parent)
     auto file_menu_open = new QAction("Open");
     auto file_menu_open_dir = new QAction("Open directory");
     auto file_menu_close = new QAction("Close");
+    auto file_menu_close_all = new QAction("Close All");
     auto file_menu_quit = new QAction("Quit");
     auto help_menu_about_qt = new QAction("About Qt");
     auto view_menu_word_wrap = new QAction("Word Wrap");
@@ -45,6 +47,7 @@ MainWindow::MainWindow(QWidget *parent)
     file_menu->addAction(file_menu_open_dir);
     file_menu->addSeparator();
     file_menu->addAction(file_menu_close);
+    file_menu->addAction(file_menu_close_all);
     file_menu->addSeparator();
     file_menu->addAction(file_menu_quit);
     view_menu->addAction(view_menu_word_wrap);
@@ -53,10 +56,17 @@ MainWindow::MainWindow(QWidget *parent)
     file_menu_quit->setShortcut(QKeySequence::Quit);
     view_menu_word_wrap->setCheckable(true);
     file_menu_close->setIcon(QIcon::fromTheme("document-close"));
+    file_menu_close_all->setIcon(QIcon::fromTheme("document-close"));
     file_menu_open->setIcon(QIcon::fromTheme("document-open"));
     file_menu_open_dir->setIcon(QIcon::fromTheme("folder-open"));
     file_menu_quit->setIcon(QIcon::fromTheme("application-exit"));
     help_menu_about_qt->setIcon(QIcon::fromTheme("help-about"));
+
+    m_file_close_action = file_menu_close;
+    m_file_close_all_action = file_menu_close_all;
+
+    m_file_close_action->setEnabled(false);
+    m_file_close_all_action->setEnabled(false);
 
     m_ui->text_view->setWordWrapMode(QTextOption::NoWrap);
 
@@ -78,13 +88,17 @@ MainWindow::MainWindow(QWidget *parent)
         if (m_fdt) {
             delete m_fdt;
             m_fdt = nullptr;
-            m_ui->text_view->clear();
-            m_ui->statusbar->clearMessage();
-            m_ui->path->clear();
             update_view();
         }
     });
 
+    connect(file_menu_close_all, &QAction::triggered, this, [this]() {
+        m_fdt = nullptr;
+        m_ui->treeWidget->clear();
+        update_view();
+    });
+
+    connect(m_ui->treeWidget, &QTreeWidget::itemSelectionChanged, this, &MainWindow::update_view);
     connect(m_ui->treeWidget, &QTreeWidget::itemSelectionChanged, this, &MainWindow::update_view);
 }
 
@@ -106,10 +120,14 @@ bool MainWindow::open(const QString &path) {
     if (!file.open(QIODevice::ReadOnly))
         return false;
 
-    return fdt::fdt_view_prepare(m_ui->treeWidget, file.readAll(), {path});
+    const auto ret = fdt::fdt_view_prepare(m_ui->treeWidget, file.readAll(), {path});
+    update_view();
+    return ret;
 }
 
 void MainWindow::update_fdt_path(QTreeWidgetItem *item) {
+    m_file_close_action->setEnabled(item);
+
     if (nullptr == item) {
         m_ui->path->clear();
         return;
@@ -131,8 +149,16 @@ void MainWindow::update_fdt_path(QTreeWidgetItem *item) {
 constexpr auto VIEW_TEXT_CACHE_SIZE = 1024 * 1024;
 
 void MainWindow::update_view() {
-    if (m_ui->treeWidget->selectedItems().isEmpty())
+    m_ui->splitter->setEnabled(m_ui->treeWidget->topLevelItemCount());
+    m_file_close_action->setEnabled(!m_ui->treeWidget->selectedItems().isEmpty());
+    m_file_close_all_action->setEnabled(m_ui->treeWidget->topLevelItemCount());
+
+    if (m_ui->treeWidget->selectedItems().isEmpty()) {
+        m_ui->text_view->clear();
+        m_ui->statusbar->clearMessage();
+        m_ui->path->clear();
         return;
+    }
 
     const auto item = m_ui->treeWidget->selectedItems().first();
 
