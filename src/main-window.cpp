@@ -17,6 +17,7 @@
 #include <document/qhexdocument.h>
 #include <document/buffer/qmemorybuffer.h>
 #include <qhexview.h>
+#include <menu-manager.hpp>
 
 using namespace Window;
 
@@ -34,72 +35,28 @@ MainWindow::MainWindow(QWidget *parent)
     m_ui->splitter->setStretchFactor(0, 2);
     m_ui->splitter->setStretchFactor(1, 5);
 
-    auto file_menu = m_ui->menubar->addMenu(tr("&File"));
-    auto view_menu = m_ui->menubar->addMenu(tr("&View"));
-    auto window_menu = m_ui->menubar->addMenu(tr("&Window"));
-    auto help_menu = m_ui->menubar->addMenu(tr("&Help"));
-    auto file_menu_open = new QAction("Open");
-    auto file_menu_open_dir = new QAction("Open directory");
-    auto file_menu_close = new QAction("Close");
-    auto file_menu_close_all = new QAction("Close All");
-    auto file_menu_quit = new QAction("Quit");
-    auto help_menu_about_qt = new QAction("About Qt");
-    auto view_menu_word_wrap = new QAction("Word Wrap");
-    auto window_menu_full_screen = new QAction("Full screen");
-    help_menu->addAction(help_menu_about_qt);
-    file_menu->addAction(file_menu_open);
-    file_menu->addAction(file_menu_open_dir);
-    file_menu->addSeparator();
-    file_menu->addAction(file_menu_close);
-    file_menu->addAction(file_menu_close_all);
-    file_menu->addSeparator();
-    file_menu->addAction(file_menu_quit);
-    view_menu->addAction(view_menu_word_wrap);
-    window_menu->addAction(window_menu_full_screen);
-    file_menu_close->setShortcut(QKeySequence::Close);
-    file_menu_open->setShortcut(QKeySequence::Open);
-    file_menu_quit->setShortcut(QKeySequence::Quit);
-    window_menu_full_screen->setShortcut(QKeySequence::FullScreen);
-    view_menu_word_wrap->setCheckable(true);
-    file_menu_close->setIcon(QIcon::fromTheme("document-close"));
-    file_menu_close_all->setIcon(QIcon::fromTheme("document-close"));
-    file_menu_open->setIcon(QIcon::fromTheme("document-open"));
-    file_menu_open_dir->setIcon(QIcon::fromTheme("folder-open"));
-    file_menu_quit->setIcon(QIcon::fromTheme("application-exit"));
-    help_menu_about_qt->setIcon(QIcon::fromTheme("help-about"));
-    window_menu_full_screen->setIcon(QIcon::fromTheme("view-fullscreen"));
-    window_menu_full_screen->setCheckable(true);
-
-    m_file_close_action = file_menu_close;
-    m_file_close_all_action = file_menu_close_all;
-
-    m_file_close_action->setEnabled(false);
-    m_file_close_all_action->setEnabled(false);
+    m_menu = std::make_unique<menu_manager>(m_ui->menubar);
+    connect(m_menu.get(), &menu_manager::show_full_screen, this, &MainWindow::showFullScreen);
+    connect(m_menu.get(), &menu_manager::show_normal, this, &MainWindow::showNormal);
+    connect(m_menu.get(), &menu_manager::quit, this, &MainWindow::close);
 
     m_ui->text_view->setWordWrapMode(QTextOption::NoWrap);
 
-    connect(window_menu_full_screen, &QAction::triggered, [this]() {
-        if (isFullScreen())
-            showNormal();
-        else
-            showFullScreen();
+    connect(m_menu.get(), &menu_manager::use_word_wrap, [this](const bool value) {
+        m_ui->text_view->setWordWrapMode(value ? QTextOption::WordWrap : QTextOption::NoWrap);
     });
 
-    connect(view_menu_word_wrap, &QAction::triggered, [this, view_menu_word_wrap]() {
-        m_ui->text_view->setWordWrapMode(view_menu_word_wrap->isChecked() ? QTextOption::WordWrap : QTextOption::NoWrap);
-    });
+    connect(m_menu.get(), &menu_manager::show_about_qt, []() { QApplication::aboutQt(); });
 
-    connect(help_menu_about_qt, &QAction::triggered, []() { QApplication::aboutQt(); });
-
-    connect(file_menu_open, &QAction::triggered, this, [this]() {
+    connect(m_menu.get(), &menu_manager::open_file, this, [this]() {
         fdt::open_file_dialog(this, [this](auto &&...values) { open_file(std::forward<decltype(values)>(values)...); });
     });
-    connect(file_menu_open_dir, &QAction::triggered, this, [this]() {
+    connect(m_menu.get(), &menu_manager::open_directory, this, [this]() {
         fdt::open_directory_dialog(this, [this](auto &&...values) { open_directory(std::forward<decltype(values)>(values)...); });
     });
 
-    connect(file_menu_quit, &QAction::triggered, this, &MainWindow::close);
-    connect(file_menu_close, &QAction::triggered, this, [this]() {
+    connect(m_menu.get(), &menu_manager::quit, this, &MainWindow::close);
+    connect(m_menu.get(), &menu_manager::close, this, [this]() {
         if (m_fdt) {
             delete m_fdt;
             m_fdt = nullptr;
@@ -107,7 +64,7 @@ MainWindow::MainWindow(QWidget *parent)
         }
     });
 
-    connect(file_menu_close_all, &QAction::triggered, this, [this]() {
+    connect(m_menu.get(), &menu_manager::close_all, this, [this]() {
         m_fdt = nullptr;
         m_ui->treeWidget->clear();
         update_view();
@@ -141,7 +98,7 @@ bool MainWindow::open(const QString &path) {
 }
 
 void MainWindow::update_fdt_path(QTreeWidgetItem *item) {
-    m_file_close_action->setEnabled(item);
+    m_menu->set_close_enabled(item);
 
     if (nullptr == item) {
         m_ui->path->clear();
@@ -165,8 +122,8 @@ constexpr auto VIEW_TEXT_CACHE_SIZE = 1024 * 1024;
 
 void MainWindow::update_view() {
     m_ui->splitter->setEnabled(m_ui->treeWidget->topLevelItemCount());
-    m_file_close_action->setEnabled(!m_ui->treeWidget->selectedItems().isEmpty());
-    m_file_close_all_action->setEnabled(m_ui->treeWidget->topLevelItemCount());
+    m_menu->set_close_enabled(!m_ui->treeWidget->selectedItems().isEmpty());
+    m_menu->set_close_all_enabled(m_ui->treeWidget->topLevelItemCount());
 
     if (m_ui->treeWidget->selectedItems().isEmpty()) {
         m_ui->preview->setCurrentWidget(m_ui->text_view_page);

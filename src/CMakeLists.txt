@@ -10,6 +10,8 @@ add_executable(fdt-viewer
     fdt-property-types.hpp
     main-window.cpp
     main-window.hpp
+    menu-manager.cpp
+    menu-manager.hpp
     main-window.ui
     dialogs.cpp
     dialogs.hpp

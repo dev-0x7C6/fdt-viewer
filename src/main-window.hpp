@@ -7,6 +7,7 @@
 
 class QHexView;
 class QTreeWidgetItem;
+class menu_manager;
 
 namespace Window {
 
@@ -33,13 +34,10 @@ private:
     void update_view();
 
 private:
-    std::unique_ptr<Ui::MainWindow> m_ui;
-    tree_widget_item *m_fdt{nullptr};
     QHexView *m_hexview{nullptr};
-
-private:
-    action *m_file_close_action{nullptr};
-    action *m_file_close_all_action{nullptr};
+    std::unique_ptr<Ui::MainWindow> m_ui;
+    std::unique_ptr<menu_manager> m_menu;
+    tree_widget_item *m_fdt{nullptr};
 };
 
 } // namespace Window

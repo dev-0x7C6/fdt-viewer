@@ -14,6 +14,7 @@ using u8 = std::uint8_t;
 
 class QAction;
 class QActionGroup;
+class QMenuBar;
 class QByteArray;
 class QDirIterator;
 class QFile;
@@ -26,6 +27,7 @@ class QTreeWidgetItem;
 class QWidget;
 
 using action = QAction;
+using menu_bar = QMenuBar;
 using action_group = QActionGroup;
 using byte_array = QByteArray;
 using dir_iterator = QDirIterator;
