@@ -28,8 +28,6 @@ public:
 
     bool open(const string &path);
 
-    void render(tree_widget_item *, string &ret, int depth = 0);
-
 private:
     void update_fdt_path(QTreeWidgetItem *item = nullptr);
     void update_view();

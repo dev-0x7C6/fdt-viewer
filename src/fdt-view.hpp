@@ -26,5 +26,6 @@ Q_DECLARE_METATYPE(NodeType)
 namespace fdt {
 
 bool fdt_view_prepare(tree_widget *target, const byte_array &datamap, const file_info &info);
+void fdt_view_dts(tree_widget_item *item, string &ret, int depth = 0);
 
-}
+} // namespace fdt
