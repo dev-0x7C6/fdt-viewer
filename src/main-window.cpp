@@ -23,6 +23,7 @@ MainWindow::MainWindow(QWidget *parent)
         : QMainWindow(parent)
         , m_ui(std::make_unique<Ui::MainWindow>()) {
     m_ui->setupUi(this);
+    m_ui->preview->setCurrentWidget(m_ui->text_view_page);
     m_ui->splitter->setEnabled(false);
 
     m_hexview = new QHexView();
@@ -154,6 +155,7 @@ void MainWindow::update_view() {
     m_file_close_all_action->setEnabled(m_ui->treeWidget->topLevelItemCount());
 
     if (m_ui->treeWidget->selectedItems().isEmpty()) {
+        m_ui->preview->setCurrentWidget(m_ui->text_view_page);
         m_ui->text_view->clear();
         m_ui->statusbar->clearMessage();
         m_ui->path->clear();
