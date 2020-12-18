@@ -71,7 +71,6 @@ MainWindow::MainWindow(QWidget *parent)
     });
 
     connect(m_ui->treeWidget, &QTreeWidget::itemSelectionChanged, this, &MainWindow::update_view);
-    connect(m_ui->treeWidget, &QTreeWidget::itemSelectionChanged, this, &MainWindow::update_view);
 }
 
 void MainWindow::open_directory(const string &path) {
