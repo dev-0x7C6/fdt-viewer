@@ -6,6 +6,7 @@
 #include <QDirIterator>
 #include <QFile>
 #include <QMessageBox>
+#include <QAction>
 #include <QTreeWidget>
 
 #include <dialogs.hpp>
@@ -35,6 +36,7 @@ MainWindow::MainWindow(QWidget *parent)
 
     auto file_menu = m_ui->menubar->addMenu(tr("&File"));
     auto view_menu = m_ui->menubar->addMenu(tr("&View"));
+    auto window_menu = m_ui->menubar->addMenu(tr("&Window"));
     auto help_menu = m_ui->menubar->addMenu(tr("&Help"));
     auto file_menu_open = new QAction("Open");
     auto file_menu_open_dir = new QAction("Open directory");
@@ -43,6 +45,7 @@ MainWindow::MainWindow(QWidget *parent)
     auto file_menu_quit = new QAction("Quit");
     auto help_menu_about_qt = new QAction("About Qt");
     auto view_menu_word_wrap = new QAction("Word Wrap");
+    auto window_menu_full_screen = new QAction("Full screen");
     help_menu->addAction(help_menu_about_qt);
     file_menu->addAction(file_menu_open);
     file_menu->addAction(file_menu_open_dir);
@@ -52,9 +55,11 @@ MainWindow::MainWindow(QWidget *parent)
     file_menu->addSeparator();
     file_menu->addAction(file_menu_quit);
     view_menu->addAction(view_menu_word_wrap);
+    window_menu->addAction(window_menu_full_screen);
     file_menu_close->setShortcut(QKeySequence::Close);
     file_menu_open->setShortcut(QKeySequence::Open);
     file_menu_quit->setShortcut(QKeySequence::Quit);
+    window_menu_full_screen->setShortcut(QKeySequence::FullScreen);
     view_menu_word_wrap->setCheckable(true);
     file_menu_close->setIcon(QIcon::fromTheme("document-close"));
     file_menu_close_all->setIcon(QIcon::fromTheme("document-close"));
@@ -62,6 +67,8 @@ MainWindow::MainWindow(QWidget *parent)
     file_menu_open_dir->setIcon(QIcon::fromTheme("folder-open"));
     file_menu_quit->setIcon(QIcon::fromTheme("application-exit"));
     help_menu_about_qt->setIcon(QIcon::fromTheme("help-about"));
+    window_menu_full_screen->setIcon(QIcon::fromTheme("view-fullscreen"));
+    window_menu_full_screen->setCheckable(true);
 
     m_file_close_action = file_menu_close;
     m_file_close_all_action = file_menu_close_all;
@@ -70,6 +77,13 @@ MainWindow::MainWindow(QWidget *parent)
     m_file_close_all_action->setEnabled(false);
 
     m_ui->text_view->setWordWrapMode(QTextOption::NoWrap);
+
+    connect(window_menu_full_screen, &QAction::triggered, [this]() {
+        if (isFullScreen())
+            showNormal();
+        else
+            showFullScreen();
+    });
 
     connect(view_menu_word_wrap, &QAction::triggered, [this, view_menu_word_wrap]() {
         m_ui->text_view->setWordWrapMode(view_menu_word_wrap->isChecked() ? QTextOption::WordWrap : QTextOption::NoWrap);
