@@ -1,23 +1,24 @@
 #include "main-window.hpp"
 #include "ui_main-window.h"
 
+#include <QAction>
 #include <QByteArray>
 #include <QDir>
 #include <QDirIterator>
 #include <QFile>
 #include <QMessageBox>
-#include <QAction>
 #include <QTreeWidget>
 
 #include <dialogs.hpp>
 #include <endian-conversions.hpp>
 #include <fdt-parser.hpp>
 #include <fdt-view.hpp>
-
-#include <document/qhexdocument.h>
-#include <document/buffer/qmemorybuffer.h>
-#include <qhexview.h>
 #include <menu-manager.hpp>
+#include <viewer-settings.hpp>
+
+#include <document/buffer/qmemorybuffer.h>
+#include <document/qhexdocument.h>
+#include <qhexview.h>
 
 using namespace Window;
 
@@ -71,6 +72,12 @@ MainWindow::MainWindow(QWidget *parent)
     });
 
     connect(m_ui->treeWidget, &QTreeWidget::itemSelectionChanged, this, &MainWindow::update_view);
+
+    viewer_settings settings;
+    m_ui->text_view->setWordWrapMode(settings.view_word_wrap.value() ? QTextOption::WordWrap : QTextOption::NoWrap);
+
+    if (settings.window_show_fullscreen.value())
+        showFullScreen();
 }
 
 void MainWindow::open_directory(const string &path) {

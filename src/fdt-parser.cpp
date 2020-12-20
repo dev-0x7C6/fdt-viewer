@@ -53,7 +53,7 @@ void fdt_parser::parse(const fdt_header header, fdt_generator &generator) {
         if (FDT_TOKEN::PROPERTY == token) {
             const auto property = read_data_32be<fdt_property_header>(iter);
             iter += sizeof(property);
-            for (auto i = 0; i < property.len; ++i)
+            for (auto i = 0u; i < property.len; ++i)
                 property_data += *iter++;
             align(property_data.size());
 

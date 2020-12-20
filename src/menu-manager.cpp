@@ -3,6 +3,8 @@
 #include <QAction>
 #include <QMenuBar>
 
+#include <viewer-settings.hpp>
+
 menu_manager::menu_manager(menu_bar *menubar)
         : QObject(nullptr) {
     auto file_menu = menubar->addMenu(tr("&File"));
@@ -42,6 +44,10 @@ menu_manager::menu_manager(menu_bar *menubar)
     window_menu_full_screen->setCheckable(true);
     file_menu_close->setEnabled(false);
     file_menu_close_all->setEnabled(false);
+
+    viewer_settings settings;
+    view_menu_word_wrap->setChecked(settings.view_word_wrap.value());
+    window_menu_full_screen->setChecked(settings.window_show_fullscreen.value());
 
     connect(file_menu_quit, &action::triggered, this, &menu_manager::quit);
     connect(view_menu_word_wrap, &action::triggered, this, &menu_manager::use_word_wrap);

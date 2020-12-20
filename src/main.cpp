@@ -3,6 +3,7 @@
 #include <QApplication>
 #include <QCommandLineOption>
 #include <QCommandLineParser>
+#include <QSettings>
 
 #include <config.h>
 
@@ -13,9 +14,12 @@ int main(int argc, char *argv[]) {
     const auto version_string = major + "." + minor + "." + patch;
 
     QApplication application(argc, argv);
+    application.setOrganizationName(PROJECT_NAME);
     application.setApplicationName(PROJECT_NAME);
     application.setApplicationVersion(version_string);
     application.setApplicationDisplayName(QString("Flattened Device Tree Viewer %1").arg(version_string));
+
+    QSettings settings;
 
     QCommandLineParser parser;
     parser.addHelpOption();
