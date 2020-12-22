@@ -4,6 +4,11 @@
 
 #include <functional>
 
+namespace dialogs {
+auto ask_already_opened(widget *parent) noexcept -> bool;
+auto warn_invalid_fdt(const string &filename, widget *parent) noexcept -> void;
+} // namespace dialogs
+
 namespace fdt {
 
 using path_callable = std::function<void(const string &path)>;

@@ -3,6 +3,7 @@
 #include <types.hpp>
 
 #include <QFileDialog>
+#include <QMessageBox>
 #include <QObject>
 
 void fdt::open_file_dialog(widget *parent, path_callable &&callable) {
@@ -32,4 +33,13 @@ void fdt::open_directory_dialog(widget *parent, path_callable &&callable) {
     if (dialog.exec() == QDialog::Accepted)
         for (auto &&dir : dialog.selectedFiles())
             callable(dir);
+}
+
+auto dialogs::ask_already_opened(widget *parent) noexcept -> bool {
+    return QMessageBox::question(parent, parent->tr("Question"), parent->tr("File is already opened, do you want to reload?"), QMessageBox::Yes | QMessageBox::No) !=
+        QMessageBox::Yes;
+}
+
+auto dialogs::warn_invalid_fdt(const string &filename, widget *parent) noexcept -> void {
+    QMessageBox::critical(parent, parent->tr("Invalid FDT format"), parent->tr("Unable to parse %1").arg(filename));
 }

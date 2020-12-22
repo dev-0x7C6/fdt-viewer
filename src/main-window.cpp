@@ -92,15 +92,20 @@ void MainWindow::open_directory(const string &path) {
 
 void MainWindow::open_file(const string &path) {
     if (!open(path))
-        QMessageBox::critical(this, tr("Invalid FDT format"), tr("Unable to parse %1").arg(path));
+        dialogs::warn_invalid_fdt(path, this);
 }
 
-bool MainWindow::open(const QString &path) {
+bool MainWindow::open(const string &path) {
     QFile file(path);
     if (!file.open(QIODevice::ReadOnly))
         return false;
 
-    const auto info = QFileInfo(path);
+    const auto info = file_info(path);
+
+    if (m_viewer->is_loaded(info.absoluteFilePath()) &&
+        dialogs::ask_already_opened(this))
+        return true;
+
     const auto ret = m_viewer->load(file.readAll(), info.fileName(), info.absoluteFilePath());
     update_view();
     return ret;

@@ -43,6 +43,9 @@ class viewer {
 public:
     viewer(tree_widget *target);
 
+    auto is_loaded(string &&id) const noexcept -> bool;
+    auto is_loaded(const string &id) const noexcept -> bool;
+
     auto load(const byte_array &datamap, string &&name, string &&id) -> bool;
     auto drop(string &&id) -> void;
 

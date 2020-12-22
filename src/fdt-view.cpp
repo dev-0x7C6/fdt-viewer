@@ -81,6 +81,14 @@ fdt::viewer::viewer(tree_widget *target)
         : m_target(target) {
 }
 
+auto fdt::viewer::is_loaded(string &&id) const noexcept -> bool {
+    return m_tree.contains(id);
+}
+
+auto fdt::viewer::is_loaded(const string &id) const noexcept -> bool {
+    return m_tree.contains(id);
+}
+
 bool fdt::viewer::load(const byte_array &datamap, string &&name, string &&id) {
     fdt_generator generator;
 
