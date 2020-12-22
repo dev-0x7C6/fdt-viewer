@@ -5,6 +5,8 @@
 #include <QMainWindow>
 #include <memory>
 
+#include <fdt-view.hpp>
+
 class QHexView;
 class QTreeWidgetItem;
 class menu_manager;
@@ -38,6 +40,7 @@ private:
     std::unique_ptr<Ui::MainWindow> m_ui;
     std::unique_ptr<menu_manager> m_menu;
     tree_widget_item *m_fdt{nullptr};
+    std::unique_ptr<fdt::viewer> m_viewer;
 };
 
 } // namespace Window

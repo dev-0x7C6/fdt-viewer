@@ -29,6 +29,8 @@ MainWindow::MainWindow(QWidget *parent)
     m_ui->preview->setCurrentWidget(m_ui->text_view_page);
     m_ui->splitter->setEnabled(false);
 
+    m_viewer = std::make_unique<fdt::viewer>(m_ui->treeWidget);
+
     m_hexview = new QHexView();
     m_hexview->setReadOnly(true);
     m_ui->hexview_layout->addWidget(m_hexview);
@@ -98,7 +100,8 @@ bool MainWindow::open(const QString &path) {
     if (!file.open(QIODevice::ReadOnly))
         return false;
 
-    const auto ret = fdt::fdt_view_prepare(m_ui->treeWidget, file.readAll(), {path});
+    const auto info = QFileInfo(path);
+    const auto ret = m_viewer->load(file.readAll(), info.fileName(), info.absoluteFilePath());
     update_view();
     return ret;
 }

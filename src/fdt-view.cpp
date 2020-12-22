@@ -77,12 +77,26 @@ string present(const qt_fdt_property &property) {
 }
 } // namespace
 
-bool fdt::fdt_view_prepare(tree_widget *target, const byte_array &datamap, const file_info &info) {
+fdt::viewer::viewer(tree_widget *target)
+        : m_target(target) {
+}
+
+bool fdt::viewer::load(const byte_array &datamap, string &&name, string &&id) {
     fdt_generator generator;
 
-    auto root = new tree_widget_item(target);
-    root->setText(0, info.fileName());
-    root->setData(0, QT_ROLE_FILEPATH, info.absoluteFilePath());
+    auto &reference = m_tree[id];
+
+    auto root = [&]() {
+        if (reference.root)
+            return reference.root;
+
+        auto ret = new tree_widget_item(m_target);
+        reference.root = ret;
+        return ret;
+    }();
+
+    root->setText(0, name);
+    root->setData(0, QT_ROLE_FILEPATH, id);
     root->setIcon(0, QIcon::fromTheme("folder-open"));
     root->setData(0, QT_ROLE_NODETYPE, NodeType::Node);
 
@@ -130,6 +144,10 @@ bool fdt::fdt_view_prepare(tree_widget *target, const byte_array &datamap, const
     }
 
     return true;
+}
+
+void fdt::viewer::drop(string &&id) {
+    m_tree.remove(id);
 }
 
 void fdt::fdt_view_dts(tree_widget_item *item, string &ret, int depth) {
