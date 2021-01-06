@@ -39,7 +39,7 @@ public:
     }
 
     auto value() const noexcept -> type {
-        settings_group_raii(m_group)->value(m_name).value<type>();
+        return settings_group_raii(m_group)->value(m_name).value<type>();
     }
 
 private:
