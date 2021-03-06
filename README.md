@@ -1,6 +1,8 @@
 # FDT Viewer
 Flattened Device Tree Viewer written in Qt.
 
+![](https://github.com/dev-0x7C6/fdt-viewer/workflows/Continuous%20integration/badge.svg)
+
 #### Supported files
 * \*.dtb - devicetree blob
 * \*.dtbo - devicetree overlay blob
