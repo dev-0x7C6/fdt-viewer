@@ -3,6 +3,7 @@
 #include <types.hpp>
 
 constexpr auto FDT_MAGIC_VALUE = 0xD00DFEED;
+constexpr auto FDT_SUPPORT_ABOVE = 16;
 
 enum class FDT_TOKEN : u32 {
     BEGIN_NODE = 0x00000001,

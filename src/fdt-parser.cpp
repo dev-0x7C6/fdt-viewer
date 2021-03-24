@@ -11,6 +11,9 @@ fdt_parser::fdt_parser(const char *data, u64 size, fdt_generator &generator)
         if (FDT_MAGIC_VALUE != header.magic || size != header.totalsize)
             return;
 
+        if (FDT_SUPPORT_ABOVE > header.version)
+            return;
+
         m_header = std::move(header);
         parse(m_header.value(), generator);
     }
