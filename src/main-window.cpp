@@ -20,8 +20,6 @@
 #include <document/qhexdocument.h>
 #include <qhexview.h>
 
-#include <QtDebug>
-
 using namespace Window;
 
 MainWindow::MainWindow(QWidget *parent)
@@ -67,8 +65,7 @@ MainWindow::MainWindow(QWidget *parent)
 		fdt::fdt_content_filter(
 			node, [&text](const string &value) -> bool {
 				return value.indexOf(text) != -1;
-			},
-			0);
+			});
 
 		update_view();
 	});

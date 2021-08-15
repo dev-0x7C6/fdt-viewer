@@ -106,7 +106,7 @@ bool fdt::viewer::load(const byte_array &datamap, string &&name, string &&id) {
 	root->setText(0, name);
 	root->setData(0, QT_ROLE_FILEPATH, id);
 	root->setIcon(0, QIcon::fromTheme("folder-open"));
-	root->setData(0, QT_ROLE_NODETYPE, NodeType::Node);
+	root->setData(0, QT_ROLE_NODETYPE, QVariant::fromValue(NodeType::Node));
 
 	std::stack<tree_widget_item *> tree_stack;
 
@@ -121,7 +121,7 @@ bool fdt::viewer::load(const byte_array &datamap, string &&name, string &&id) {
 		if (child->text(0).isEmpty()) {
 			child->setText(0, QString::fromStdString(name.data()));
 			child->setIcon(0, QIcon::fromTheme("folder-open"));
-			child->setData(0, QT_ROLE_NODETYPE, NodeType::Node);
+			child->setData(0, QT_ROLE_NODETYPE, QVariant::fromValue(NodeType::Node));
 		}
 
 		tree_stack.emplace(child);
@@ -136,7 +136,7 @@ bool fdt::viewer::load(const byte_array &datamap, string &&name, string &&id) {
 
 		item->setText(0, QString::fromStdString(name.data()));
 		item->setIcon(0, QIcon::fromTheme("flag-green"));
-		item->setData(0, QT_ROLE_NODETYPE, NodeType::Property);
+		item->setData(0, QT_ROLE_NODETYPE, QVariant::fromValue(NodeType::Property));
 
 		qt_fdt_property property;
 		property.name = QString::fromStdString(name.data());
@@ -158,13 +158,13 @@ void fdt::viewer::drop(string &&id) {
 	m_tree.remove(id);
 }
 
-bool fdt::fdt_content_filter(tree_widget_item *node, const std::function<bool(const string &)> &match, int depth) {
+bool fdt::fdt_content_filter(tree_widget_item *node, const std::function<bool(const string &)> &match) {
 	QList<tree_widget_item *> nodes;
 	QList<tree_widget_item *> properties;
 
 	for (auto i = 0; i < node->childCount(); ++i) {
 		const auto child = node->child(i);
-		switch (node->data(0, QT_ROLE_NODETYPE).value<NodeType>()) {
+		switch (child->data(0, QT_ROLE_NODETYPE).value<NodeType>()) {
 			case NodeType::Node:
 				nodes.append(child);
 				break;
@@ -179,12 +179,15 @@ bool fdt::fdt_content_filter(tree_widget_item *node, const std::function<bool(co
 	bool isFound = match(name);
 
 	for (auto item : properties) {
+		if (isFound)
+			break;
+
 		const auto property = item->data(0, QT_ROLE_PROPERTY).value<qt_fdt_property>();
-		isFound |= match(name);
+		isFound |= match(property.name) || match(present(property));
 	}
 
 	for (auto i = 0; i < nodes.count(); ++i) {
-		isFound |= fdt::fdt_content_filter(nodes.at(i), match, depth + 1);
+		isFound |= fdt::fdt_content_filter(nodes.at(i), match);
 	}
 
 	node->setHidden(!isFound);

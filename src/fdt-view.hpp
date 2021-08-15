@@ -20,9 +20,9 @@ constexpr auto QT_ROLE_PROPERTY = Qt::UserRole;
 constexpr auto QT_ROLE_FILEPATH = Qt::UserRole + 1;
 constexpr auto QT_ROLE_NODETYPE = Qt::UserRole + 2;
 
-enum NodeType {
-    Node,
-    Property
+enum class NodeType {
+	Node,
+	Property
 };
 
 Q_DECLARE_METATYPE(NodeType)
@@ -56,6 +56,6 @@ private:
 
 bool fdt_view_prepare(tree_widget *target, const byte_array &datamap, const file_info &info);
 bool fdt_view_dts(tree_widget_item *item, string &ret, int depth = 0);
-bool fdt_content_filter(tree_widget_item *item, const std::function<bool(const string &)> &match, int depth = 0);
+bool fdt_content_filter(tree_widget_item *item, const std::function<bool(const string &)> &match);
 
 } // namespace fdt
