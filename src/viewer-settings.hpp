@@ -35,12 +35,12 @@ public:
     }
 
     auto set(const type &value) noexcept -> void {
-        settings_group_raii(m_group)->setValue(m_name, value);
-    }
+		settings_group_raii(m_group)->setValue(m_name, value);
+	}
 
-    auto value() const noexcept -> type {
-        return settings_group_raii(m_group)->value(m_name).value<type>();
-    }
+	auto value() const noexcept -> type {
+		return settings_group_raii(m_group)->value(m_name).value<type>();
+	}
 
 private:
     const string m_group;
