@@ -1,6 +1,6 @@
 [submodule "src/submodules/qhexview"]
 	path = src/submodules/qhexview
-	url = https://github.com/dev-0x7C6/QHexView.git
+	url = https://github.com/Dax89/QHexView.git
 [submodule "formatter"]
 	path = formatter
 	url = https://github.com/dev-0x7C6/clang-formatter-integration.git
