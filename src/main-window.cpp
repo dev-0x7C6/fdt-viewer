@@ -64,6 +64,9 @@ MainWindow::MainWindow(QWidget *parent)
 
 		fdt::fdt_content_filter(
 			node, [&text](const string &value) -> bool {
+				if (text.isEmpty())
+					return true;
+
 				return value.indexOf(text) != -1;
 			});
 
