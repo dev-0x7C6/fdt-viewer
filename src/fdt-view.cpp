@@ -233,4 +233,6 @@ bool fdt::fdt_view_dts(tree_widget_item *item, string &ret, int depth) {
 	}
 
 	ret += depth_str + "};\n";
+
+	return true;
 }
