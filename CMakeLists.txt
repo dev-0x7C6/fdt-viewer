@@ -14,3 +14,9 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 find_package(Qt5 COMPONENTS Widgets REQUIRED)
 
 add_subdirectory("src")
+
+
+if (UNIX)
+    install(FILES resources/fdt-viewer.svg DESTINATION share/icons/hicolor/scalable)
+    install(FILES resources/fdt-viewer.desktop DESTINATION share/applications)
+endif (UNIX)

@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Exec=fdt-viewer
+Name=FDT Viewer
+GenericName=Utility to read devicetree blobs and fit containers
+Icon=fdt-viewer
+Terminal=false
+Categories=System;Utility
+MimeType=text/plain;application/octet-stream
+

@@ -25,7 +25,7 @@ using namespace Window;
 MainWindow::MainWindow(QWidget *parent)
         : QMainWindow(parent)
         , m_ui(std::make_unique<Ui::MainWindow>()) {
-    setWindowIcon(QIcon(":/resources/icon.svg"));
+    setWindowIcon(QIcon(":/resources/fdt-viewer.svg"));
     m_ui->setupUi(this);
     m_ui->preview->setCurrentWidget(m_ui->text_view_page);
     m_ui->splitter->setEnabled(false);

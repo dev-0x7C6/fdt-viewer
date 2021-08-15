@@ -1,5 +1,5 @@
 <RCC>
     <qresource prefix="/">
-        <file>resources/icon.svg</file>
+        <file>resources/fdt-viewer.svg</file>
     </qresource>
 </RCC>
