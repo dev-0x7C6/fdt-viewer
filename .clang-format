@@ -103,6 +103,6 @@ SpacesInParentheses: false
 SpacesInSquareBrackets: false
 Standard:        Latest
 TabWidth:        4
-UseTab:          Always
+UseTab:          Never
 ...
 

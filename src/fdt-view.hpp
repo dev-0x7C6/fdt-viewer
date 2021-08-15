@@ -21,8 +21,8 @@ constexpr auto QT_ROLE_FILEPATH = Qt::UserRole + 1;
 constexpr auto QT_ROLE_NODETYPE = Qt::UserRole + 2;
 
 enum class NodeType {
-	Node,
-	Property
+    Node,
+    Property
 };
 
 Q_DECLARE_METATYPE(NodeType)

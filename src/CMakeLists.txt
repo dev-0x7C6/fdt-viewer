@@ -21,6 +21,7 @@ add_executable(fdt-viewer
     types.hpp
     viewer-settings.cpp
     viewer-settings.hpp
+    ../resources.qrc
 )
 
 target_link_libraries(fdt-viewer PRIVATE Qt5::Widgets qhexview-lib)

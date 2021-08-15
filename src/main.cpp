@@ -14,6 +14,7 @@ int main(int argc, char *argv[]) {
     const auto version_string = major + "." + minor + "." + patch;
 
     QApplication application(argc, argv);
+
     application.setOrganizationName(PROJECT_NAME);
     application.setApplicationName(PROJECT_NAME);
     application.setApplicationVersion(version_string);

@@ -6,7 +6,7 @@
 class menu_manager : public QObject {
     Q_OBJECT
 public:
-	menu_manager(menu_bar *menubar);
+    menu_manager(menu_bar *menubar);
 
 public:
     void set_close_enabled(bool value);
