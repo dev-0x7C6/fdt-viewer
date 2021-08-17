@@ -17,6 +17,6 @@ add_subdirectory("src")
 
 
 if (UNIX)
-    install(FILES resources/fdt-viewer.svg DESTINATION share/icons/hicolor/scalable)
+    install(FILES resources/fdt-viewer.svg DESTINATION share/icons/hicolor/scalable/apps)
     install(FILES resources/fdt-viewer.desktop DESTINATION share/applications)
 endif (UNIX)
