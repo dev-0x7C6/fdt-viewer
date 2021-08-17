@@ -1,6 +1,6 @@
 [Desktop Entry]
 Type=Application
-Exec=fdt-viewer
+Exec=fdt-viewer %F
 Name=FDT Viewer
 GenericName=Utility to read devicetree blobs and fit containers
 Icon=fdt-viewer

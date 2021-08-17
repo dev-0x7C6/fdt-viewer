@@ -3,6 +3,7 @@
 #include <QApplication>
 #include <QCommandLineOption>
 #include <QCommandLineParser>
+#include <QFileInfo>
 #include <QSettings>
 
 #include <config.h>
@@ -23,22 +24,37 @@ int main(int argc, char *argv[]) {
     QSettings settings;
 
     QCommandLineParser parser;
+    QCommandLineOption file_option{{"f", "file"}, QCoreApplication::translate("main", "open file."), "file"};
+    QCommandLineOption dir_option{{"d", "directory"}, QCoreApplication::translate("main", "open directory."), "directory"};
     parser.addHelpOption();
     parser.addVersionOption();
-    parser.addOptions({//
-        {{"f", "file"}, QCoreApplication::translate("main", "open file."), QCoreApplication::translate("main", "file")},
-        {{"d", "directory"}, QCoreApplication::translate("main", "open directory."), QCoreApplication::translate("main", "directory")}});
+    parser.addOptions({file_option, dir_option});
 
     parser.process(application);
 
     Window::MainWindow window;
     window.show();
 
-    if (parser.isSet("directory"))
-        window.open_directory(parser.value("directory"));
+    bool no_parameters = !parser.isSet(dir_option) && !parser.isSet(file_option);
 
-    if (parser.isSet("file"))
-        window.open_file(parser.value("file"));
+    if (parser.isSet(dir_option))
+        window.open_directory(parser.value(dir_option));
+
+    if (parser.isSet(file_option))
+        window.open_file(parser.value(file_option));
+
+    if (no_parameters) {
+        auto args = application.arguments();
+        args.removeFirst();
+        for (auto &&path : args) {
+            auto info = QFileInfo{path};
+            if (info.isDir())
+                window.open_directory(path);
+
+            if (info.isFile())
+                window.open_file(path);
+        }
+    }
 
     return application.exec();
 }
