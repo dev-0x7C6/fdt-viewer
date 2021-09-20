@@ -8,6 +8,10 @@ Flattened Device Tree Viewer written in Qt.
 * \*.dtbo - devicetree overlay blob
 * \*.itb - fit image container
 
+#### Features
+* Quick search for single or multiple device-trees
+* Show embedded inner device-tree data
+
 #### Command line usage
 ```
 Usage: ./fdt-viewer [options]
