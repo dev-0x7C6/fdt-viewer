@@ -114,8 +114,19 @@ bool fdt::viewer::load(const byte_array &datamap, string &&name, string &&id) {
         auto child = [&]() {
             if (tree_stack.empty())
                 return root;
-            else
-                return new tree_widget_item(tree_stack.top());
+
+            tree_widget_item *item = nullptr;
+            tree_widget_item *root = tree_stack.top();
+
+            for (auto i = 0; i < root->childCount(); ++i)
+                if (root->child(i)->text(0) == QString::fromStdString(name.data())) {
+                    auto ret = root->child(i);
+                    ret->setIcon(0, QIcon::fromTheme("folder-new"));
+                    ret->setData(0, QT_ROLE_NODETYPE, QVariant::fromValue(NodeType::Node));
+                    return root->child(i);
+                }
+
+            return new tree_widget_item(root);
         }();
 
         if (child->text(0).isEmpty()) {
@@ -149,7 +160,7 @@ bool fdt::viewer::load(const byte_array &datamap, string &&name, string &&id) {
     fdt_handle_special_property handle_inner_dt;
     handle_inner_dt.name = "data";
     handle_inner_dt.callback = [&handle_special_properties](const fdt_property &property, fdt_generator &generator) {
-        fdt_parser(property.data.data(), property.data.size(), generator, "device-tree@" + property.name, handle_special_properties);
+        fdt_parser(property.data.data(), property.data.size(), generator, property.name, handle_special_properties);
     };
 
     handle_special_properties.emplace_back(std::move(handle_inner_dt));
