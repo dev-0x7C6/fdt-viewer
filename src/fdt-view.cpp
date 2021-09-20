@@ -144,7 +144,17 @@ bool fdt::viewer::load(const byte_array &datamap, string &&name, string &&id) {
         item->setData(0, QT_ROLE_PROPERTY, QVariant::fromValue(property));
     };
 
-    fdt_parser parser(datamap.data(), datamap.size(), generator);
+    std::vector<fdt_handle_special_property> handle_special_properties;
+
+    fdt_handle_special_property handle_inner_dt;
+    handle_inner_dt.name = "data";
+    handle_inner_dt.callback = [&handle_special_properties](const fdt_property &property, fdt_generator &generator) {
+        fdt_parser(property.data.data(), property.data.size(), generator, "device-tree@" + property.name, handle_special_properties);
+    };
+
+    handle_special_properties.emplace_back(std::move(handle_inner_dt));
+
+    fdt_parser parser(datamap.data(), datamap.size(), generator, {}, handle_special_properties);
 
     if (!parser.is_valid()) {
         delete root;

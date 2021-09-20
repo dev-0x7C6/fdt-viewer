@@ -3,10 +3,11 @@
 #include <cstring>
 #include <endian-conversions.hpp>
 
-fdt_parser::fdt_parser(const char *data, u64 size, fdt_generator &generator, const std::string &default_root_node)
+fdt_parser::fdt_parser(const char *data, u64 size, fdt_generator &generator, const std::string &default_root_node, const std::vector<fdt_handle_special_property> &handle_special_properties)
         : m_data(data)
         , m_size(size)
-        , m_default_root_node(default_root_node) {
+        , m_default_root_node(default_root_node)
+        , m_handle_special_properties(handle_special_properties) {
     if (size >= sizeof(fdt_header)) {
         auto header = read_data_32be<fdt_header>(data);
         if (FDT_MAGIC_VALUE != header.magic || size != header.totalsize)
@@ -24,12 +25,11 @@ void fdt_parser::parse(const fdt_header header, fdt_generator &generator) {
     const auto dt_struct = m_data + header.off_dt_struct;
     const auto dt_strings = m_data + header.off_dt_strings;
 
-    std::string property_name;
-    std::string property_data;
+    fdt_property property;
     std::string node_name;
 
-    property_data.reserve(4096);
-    property_name.reserve(4096);
+    property.name.reserve(4096);
+    property.data.reserve(4096);
     node_name.reserve(4096);
 
     for (auto iter = dt_struct; iter < dt_struct + header.size_dt_struct;) {
@@ -56,28 +56,26 @@ void fdt_parser::parse(const fdt_header header, fdt_generator &generator) {
         }
 
         if (FDT_TOKEN::PROPERTY == token) {
-            const auto property = read_data_32be<fdt_property_header>(iter);
-            iter += sizeof(property);
-            for (auto i = 0u; i < property.len; ++i)
-                property_data += *iter++;
-            align(property_data.size());
+            const auto header = read_data_32be<fdt_property_header>(iter);
+            iter += sizeof(header);
+            for (auto i = 0u; i < header.len; ++i)
+                property.data += *iter++;
+            align(property.data.size());
 
-            for (auto str = dt_strings + property.nameoff; *str != 0x00; ++str)
-                property_name += *str;
+            for (auto str = dt_strings + header.nameoff; *str != 0x00; ++str)
+                property.name += *str;
 
-            generator.insert_property(property_name, property_data);
+            generator.insert_property(property.name, property.data);
 
-            if (property_name == "data") {
-                fdt_parser inner_dt_scan(property_data.c_str(),
-                    property_data.size(), generator, "device-tree@" + property_name);
-            }
+            for (auto &&handle : m_handle_special_properties)
+                if (handle.name == property.name)
+                    handle.callback(property, generator);
         }
 
         if (FDT_TOKEN::END == token)
             break;
 
-        property_data.clear();
-        property_name.clear();
+        property.clear();
         node_name.clear();
     }
 }
