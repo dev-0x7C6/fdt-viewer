@@ -15,7 +15,7 @@ struct fdt_generator {
 
 class fdt_parser {
 public:
-    fdt_parser(const char *data, u64 size, fdt_generator &generator);
+    fdt_parser(const char *data, u64 size, fdt_generator &generator, const std::string &default_root_node = {});
     constexpr bool is_valid() noexcept { return m_header.has_value(); }
 
 private:
@@ -25,6 +25,7 @@ private:
     std::optional<fdt_header> m_header;
     std::string_view m_dt_struct;
     std::string_view m_dt_strings;
+    const std::string m_default_root_node;
 
     const char *const m_data;
     const u64 m_size;

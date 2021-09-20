@@ -3,9 +3,10 @@
 #include <cstring>
 #include <endian-conversions.hpp>
 
-fdt_parser::fdt_parser(const char *data, u64 size, fdt_generator &generator)
+fdt_parser::fdt_parser(const char *data, u64 size, fdt_generator &generator, const std::string &default_root_node)
         : m_data(data)
-        , m_size(size) {
+        , m_size(size)
+        , m_default_root_node(default_root_node) {
     if (size >= sizeof(fdt_header)) {
         auto header = read_data_32be<fdt_header>(data);
         if (FDT_MAGIC_VALUE != header.magic || size != header.totalsize)
@@ -46,7 +47,8 @@ void fdt_parser::parse(const fdt_header header, fdt_generator &generator) {
                 node_name += *iter++;
             node_name += *++iter;
             align(node_name.size());
-            generator.begin_node(node_name);
+            node_name.resize(node_name.size() - 1);
+            generator.begin_node(node_name.size() == 0 ? m_default_root_node : node_name);
         }
 
         if (FDT_TOKEN::END_NODE == token) {
@@ -64,6 +66,11 @@ void fdt_parser::parse(const fdt_header header, fdt_generator &generator) {
                 property_name += *str;
 
             generator.insert_property(property_name, property_data);
+
+            if (property_name == "data") {
+                fdt_parser inner_dt_scan(property_data.c_str(),
+                    property_data.size(), generator, "device-tree@" + property_name);
+            }
         }
 
         if (FDT_TOKEN::END == token)
