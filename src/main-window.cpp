@@ -83,6 +83,8 @@ MainWindow::MainWindow(QWidget *parent)
         }
     });
 
+    connect(m_menu.get(), &menu_manager::property_export, this, &MainWindow::property_export);
+
     connect(m_menu.get(), &menu_manager::close_all, this, [this]() {
         m_fdt = nullptr;
         m_ui->treeWidget->clear();
@@ -181,6 +183,20 @@ void MainWindow::update_view() {
 
     fdt::fdt_view_dts(item, ret);
     m_ui->text_view->setText(ret);
+}
+
+void MainWindow::property_export() {
+    if (m_ui->treeWidget->selectedItems().isEmpty())
+        return;
+
+    const auto item = m_ui->treeWidget->selectedItems().first();
+    const auto type = item->data(0, QT_ROLE_NODETYPE).value<NodeType>();
+
+    if (NodeType::Property == type) {
+        const auto property = item->data(0, QT_ROLE_PROPERTY).value<qt_fdt_property>();
+        m_hexview->setDocument(QHexDocument::fromMemory<QMemoryBuffer>(property.data));
+        fdt::export_property_file_dialog(this, property.data, property.name);
+    }
 }
 
 MainWindow::~MainWindow() = default;

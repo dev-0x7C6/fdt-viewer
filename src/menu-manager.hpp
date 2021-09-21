@@ -18,6 +18,7 @@ signals:
     void close();
     void close_all();
     void quit();
+    void property_export();
 
     void show_about_qt();
 

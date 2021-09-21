@@ -43,3 +43,7 @@ auto dialogs::ask_already_opened(widget *parent) noexcept -> bool {
 auto dialogs::warn_invalid_fdt(const string &filename, widget *parent) noexcept -> void {
     QMessageBox::critical(parent, parent->tr("Invalid FDT format"), parent->tr("Unable to parse %1").arg(filename));
 }
+
+auto fdt::export_property_file_dialog(widget *parent, const QByteArray &data, const QString &hint) -> void {
+    QFileDialog::saveFileContent(data, hint);
+}

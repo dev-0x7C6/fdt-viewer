@@ -34,6 +34,7 @@ public:
 private:
     void update_fdt_path(QTreeWidgetItem *item = nullptr);
     void update_view();
+    void property_export();
 
 private:
     QHexView *m_hexview{nullptr};
