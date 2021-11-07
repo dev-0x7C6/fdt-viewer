@@ -98,6 +98,16 @@ MainWindow::MainWindow(QWidget *parent)
 
     if (settings.window_show_fullscreen.value())
         showFullScreen();
+
+    auto rect = settings.window_position.value();
+
+    if (!rect.isEmpty())
+        setGeometry(rect);
+}
+
+MainWindow::~MainWindow() {
+    viewer_settings settings;
+    settings.window_position.set(geometry());
 }
 
 void MainWindow::open_directory(const string &path) {
@@ -198,5 +208,3 @@ void MainWindow::property_export() {
         fdt::export_property_file_dialog(this, property.data, property.name);
     }
 }
-
-MainWindow::~MainWindow() = default;
