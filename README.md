@@ -26,7 +26,7 @@ Options:
 
 #### Installation process
 ```console
-user@host # git clone https://github.com/dev-0x7C6/fdt-viewer.git
+user@host # git clone --recursive https://github.com/dev-0x7C6/fdt-viewer.git
 user@host # cd fdt-viewer
 user@host # cmake . -DCMAKE_INSTALL_PREFIX=/usr
 user@host # make -j$(nproc)
