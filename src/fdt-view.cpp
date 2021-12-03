@@ -71,7 +71,7 @@ string present(const qt_fdt_property &property) {
     }
 
     if (std::count_if(data.begin(), data.end(), [](auto &&value) { return value == 0x00; }) == 1 &&
-        data.back() == 0x00) return result_str({property.data});
+        data.at(data.size() - 1) == 0x00) return result_str({property.data});
 
     return result(present_u32be(property.data));
 }
