@@ -45,5 +45,29 @@ auto dialogs::warn_invalid_fdt(const string &filename, widget *parent) noexcept 
 }
 
 auto fdt::export_property_file_dialog(widget *parent, const QByteArray &data, const QString &hint) -> void {
+#if QT_VERSION >= QT_VERSION_CHECK(5, 14, 0)
     QFileDialog::saveFileContent(data, hint);
+#else
+    QFileDialog *dialog = new QFileDialog();
+    dialog->setAcceptMode(QFileDialog::AcceptSave);
+    dialog->setFileMode(QFileDialog::AnyFile);
+    dialog->selectFile(hint);
+
+    auto fileSelected = [=](const QString &fileName) {
+        if (!fileName.isNull()) {
+            QFile selectedFile(fileName);
+            if (selectedFile.open(QIODevice::WriteOnly))
+                selectedFile.write(data);
+        }
+    };
+
+    auto dialogClosed = [=](int code) {
+        Q_UNUSED(code);
+        dialog->deleteLater();
+    };
+
+    QObject::connect(dialog, &QFileDialog::fileSelected, fileSelected);
+    QObject::connect(dialog, &QFileDialog::finished, dialogClosed);
+    dialog->show();
+#endif
 }

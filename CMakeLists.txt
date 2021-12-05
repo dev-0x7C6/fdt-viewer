@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.18)
+cmake_minimum_required(VERSION 3.12)
 
 project(fdt-viewer VERSION 0.8.0 LANGUAGES CXX)
 
