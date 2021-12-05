@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.12)
 
-project(fdt-viewer VERSION 0.8.0 LANGUAGES CXX)
+project(fdt-viewer VERSION 0.8.1 LANGUAGES CXX)
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
@@ -14,7 +14,6 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 find_package(Qt5 COMPONENTS Widgets REQUIRED)
 
 add_subdirectory("src")
-
 
 if (UNIX)
     install(FILES resources/fdt-viewer.svg DESTINATION share/icons/hicolor/scalable/apps)
