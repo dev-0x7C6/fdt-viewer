@@ -10,7 +10,7 @@
 #include <stack>
 
 namespace {
-constexpr auto BINARY_PREVIEW_LIMIT = 2048;
+constexpr auto BINARY_PREVIEW_LIMIT = 256;
 
 string present_u32be(const QByteArray &data) {
     string ret;
@@ -107,6 +107,8 @@ bool fdt::viewer::load(const byte_array &datamap, string &&name, string &&id) {
     root->setData(0, QT_ROLE_FILEPATH, id);
     root->setIcon(0, QIcon::fromTheme("folder-open"));
     root->setData(0, QT_ROLE_NODETYPE, QVariant::fromValue(NodeType::Node));
+    root->setExpanded(true);
+    root->setSelected(true);
 
     std::stack<tree_widget_item *> tree_stack;
 
@@ -142,17 +144,17 @@ bool fdt::viewer::load(const byte_array &datamap, string &&name, string &&id) {
         tree_stack.pop();
     };
 
-    generator.insert_property = [&tree_stack](std::string_view &&name, std::string_view &&data) {
+    generator.insert_property = [&tree_stack](const fdt_property &property) {
         auto item = new tree_widget_item(tree_stack.top());
 
-        item->setText(0, QString::fromStdString(name.data()));
+        item->setText(0, QString::fromStdString(property.name));
         item->setIcon(0, QIcon::fromTheme("flag-green"));
         item->setData(0, QT_ROLE_NODETYPE, QVariant::fromValue(NodeType::Property));
 
-        qt_fdt_property property;
-        property.name = QString::fromStdString(name.data());
-        property.data = QByteArray(data.data(), data.size());
-        item->setData(0, QT_ROLE_PROPERTY, QVariant::fromValue(property));
+        qt_fdt_property p2;
+        p2.name = QString::fromStdString(property.name);
+        p2.data = std::move(property.data);
+        item->setData(0, QT_ROLE_PROPERTY, QVariant::fromValue(p2));
     };
 
     std::vector<fdt_handle_special_property> handle_special_properties;

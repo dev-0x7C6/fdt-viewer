@@ -25,30 +25,28 @@ void fdt_parser::parse(const fdt_header header, fdt_generator &generator) {
     const auto dt_struct = m_data + header.off_dt_struct;
     const auto dt_strings = m_data + header.off_dt_strings;
 
-    fdt_property property;
-    std::string node_name;
-
-    property.name.reserve(4096);
-    property.data.reserve(4096);
-    node_name.reserve(4096);
+    auto get_property_name = [&](auto offset) {
+        const auto ptr = dt_strings + offset;
+        return std::string(ptr, std::strlen(ptr));
+    };
 
     for (auto iter = dt_struct; iter < dt_struct + header.size_dt_struct;) {
-        const auto token = static_cast<FDT_TOKEN>(u32_be(iter));
-        iter += sizeof(FDT_TOKEN);
-
-        auto align = [&iter](const std::size_t readed) {
-            const auto value = readed % sizeof(FDT_TOKEN);
+        auto seek_and_align = [&iter](const std::size_t size) {
+            const auto value = size % sizeof(FDT_TOKEN);
             if (value)
-                iter += sizeof(FDT_TOKEN) - value;
+                return iter += size + sizeof(FDT_TOKEN) - value;
+
+            return iter += size;
         };
 
+        const auto token = static_cast<FDT_TOKEN>(u32_be(iter));
+        seek_and_align(sizeof(token));
+
         if (FDT_TOKEN::BEGIN_NODE == token) {
-            while (*iter != 0x00)
-                node_name += *iter++;
-            node_name += *++iter;
-            align(node_name.size());
-            node_name.resize(node_name.size() - 1);
-            generator.begin_node(node_name.size() == 0 ? m_default_root_node : node_name);
+            const auto size = std::strlen(iter);
+            auto name = std::string_view(iter, size);
+            seek_and_align(size);
+            generator.begin_node(size ? name : m_default_root_node);
         }
 
         if (FDT_TOKEN::END_NODE == token) {
@@ -57,25 +55,22 @@ void fdt_parser::parse(const fdt_header header, fdt_generator &generator) {
 
         if (FDT_TOKEN::PROPERTY == token) {
             const auto header = read_data_32be<fdt_property_header>(iter);
-            iter += sizeof(header);
-            for (auto i = 0u; i < header.len; ++i)
-                property.data += *iter++;
-            align(property.data.size());
+            seek_and_align(sizeof(header));
 
-            for (auto str = dt_strings + header.nameoff; *str != 0x00; ++str)
-                property.name += *str;
+            fdt_property property;
+            property.data = QByteArray(iter, header.len);
+            seek_and_align(header.len);
 
-            generator.insert_property(property.name, property.data);
+            property.name = get_property_name(header.nameoff);
+            generator.insert_property(property);
 
             for (auto &&handle : m_handle_special_properties)
-                if (handle.name == property.name)
+                if (handle.name == property.name) {
                     handle.callback(property, generator);
+                }
         }
 
         if (FDT_TOKEN::END == token)
             break;
-
-        property.clear();
-        node_name.clear();
     }
 }

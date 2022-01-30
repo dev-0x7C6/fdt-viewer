@@ -7,21 +7,22 @@
 #include <string>
 #include <string_view>
 #include <vector>
-
-struct fdt_generator {
-    std::function<void(std::string_view &&view)> begin_node{[](auto...) {}};
-    std::function<void()> end_node{[](auto...) {}};
-    std::function<void(std::string_view &&name, std::string_view &&data)> insert_property{[](auto...) {}};
-};
+#include <QByteArray>
 
 struct fdt_property {
     std::string name;
-    std::string data;
+    QByteArray data;
 
     auto clear() noexcept {
         name.clear();
         data.clear();
     }
+};
+
+struct fdt_generator {
+    std::function<void(std::string_view &&view)> begin_node{[](auto...) {}};
+    std::function<void()> end_node{[](auto...) {}};
+    std::function<void(const fdt_property &property)> insert_property{[](auto...) {}};
 };
 
 using fdt_property_callback = std::function<void(const fdt_property &property, fdt_generator &generator)>;
