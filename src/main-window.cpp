@@ -181,7 +181,7 @@ void MainWindow::update_view() {
     m_ui->preview->setCurrentWidget(NodeType::Node == type ? m_ui->text_view_page : m_ui->property_view_page);
 
     if (NodeType::Property == type) {
-        const auto property = item->data(0, QT_ROLE_PROPERTY).value<qt_fdt_property>();
+        const auto property = item->data(0, QT_ROLE_PROPERTY).value<fdt_property>();
         m_hexview->setDocument(QHexDocument::fromMemory<QMemoryBuffer>(property.data));
     }
 
@@ -203,7 +203,7 @@ void MainWindow::property_export() {
     const auto type = item->data(0, QT_ROLE_NODETYPE).value<NodeType>();
 
     if (NodeType::Property == type) {
-        const auto property = item->data(0, QT_ROLE_PROPERTY).value<qt_fdt_property>();
+        const auto property = item->data(0, QT_ROLE_PROPERTY).value<fdt_property>();
         m_hexview->setDocument(QHexDocument::fromMemory<QMemoryBuffer>(property.data));
         fdt::export_property_file_dialog(this, property.data, property.name);
     }

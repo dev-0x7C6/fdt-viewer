@@ -5,16 +5,12 @@
 
 #include <fdt-property-types.hpp>
 #include <types.hpp>
+#include <fdt-parser.hpp>
 
 template <typename... types>
 using hash_map = QHash<types...>;
 
-struct qt_fdt_property {
-    QString name;
-    QByteArray data;
-};
-
-Q_DECLARE_METATYPE(qt_fdt_property)
+Q_DECLARE_METATYPE(fdt_property)
 
 constexpr auto QT_ROLE_PROPERTY = Qt::UserRole;
 constexpr auto QT_ROLE_FILEPATH = Qt::UserRole + 1;

@@ -28,7 +28,7 @@ string present_u32be(const QByteArray &data) {
     return ret;
 }
 
-string present(const qt_fdt_property &property) {
+string present(const fdt_property &property) {
     auto &&name = property.name;
     auto &&data = property.data;
 
@@ -89,39 +89,35 @@ auto fdt::viewer::is_loaded(const string &id) const noexcept -> bool {
     return m_tree.contains(id);
 }
 
-bool fdt::viewer::load(const byte_array &datamap, string &&name, string &&id) {
-    fdt_generator generator;
+struct qt_tree_fdt_generator : public iface_fdt_generator {
+    qt_tree_fdt_generator(fdt::tree_info &reference, tree_widget *target, string &&name, string &&id) {
+        m_root = [&]() {
+            if (reference.root)
+                return reference.root;
 
-    auto &reference = m_tree[id];
+            auto ret = new tree_widget_item(target);
+            reference.root = ret;
+            return ret;
+        }();
 
-    auto root = [&]() {
-        if (reference.root)
-            return reference.root;
+        m_root->setText(0, name);
+        m_root->setData(0, QT_ROLE_FILEPATH, id);
+        m_root->setIcon(0, QIcon::fromTheme("folder-open"));
+        m_root->setData(0, QT_ROLE_NODETYPE, QVariant::fromValue(NodeType::Node));
+        m_root->setExpanded(true);
+        m_root->setSelected(true);
+    }
 
-        auto ret = new tree_widget_item(m_target);
-        reference.root = ret;
-        return ret;
-    }();
-
-    root->setText(0, name);
-    root->setData(0, QT_ROLE_FILEPATH, id);
-    root->setIcon(0, QIcon::fromTheme("folder-open"));
-    root->setData(0, QT_ROLE_NODETYPE, QVariant::fromValue(NodeType::Node));
-    root->setExpanded(true);
-    root->setSelected(true);
-
-    std::stack<tree_widget_item *> tree_stack;
-
-    generator.begin_node = [&](std::string_view &&name) {
+    void begin_node(const QString &name) noexcept final {
         auto child = [&]() {
-            if (tree_stack.empty())
-                return root;
+            if (m_tree_stack.empty())
+                return m_root;
 
             tree_widget_item *item = nullptr;
-            tree_widget_item *root = tree_stack.top();
+            tree_widget_item *root = m_tree_stack.top();
 
             for (auto i = 0; i < root->childCount(); ++i)
-                if (root->child(i)->text(0) == QString::fromStdString(name.data())) {
+                if (root->child(i)->text(0) == name) {
                     auto ret = root->child(i);
                     ret->setIcon(0, QIcon::fromTheme("folder-new"));
                     ret->setData(0, QT_ROLE_NODETYPE, QVariant::fromValue(NodeType::Node));
@@ -132,36 +128,40 @@ bool fdt::viewer::load(const byte_array &datamap, string &&name, string &&id) {
         }();
 
         if (child->text(0).isEmpty()) {
-            child->setText(0, QString::fromStdString(name.data()));
+            child->setText(0, name);
             child->setIcon(0, QIcon::fromTheme("folder-open"));
             child->setData(0, QT_ROLE_NODETYPE, QVariant::fromValue(NodeType::Node));
         }
 
-        tree_stack.emplace(child);
-    };
+        m_tree_stack.emplace(child);
+    }
 
-    generator.end_node = [&tree_stack]() {
-        tree_stack.pop();
-    };
+    void end_node() noexcept final {
+        m_tree_stack.pop();
+    }
 
-    generator.insert_property = [&tree_stack](const fdt_property &property) {
-        auto item = new tree_widget_item(tree_stack.top());
+    void insert_property(const fdt_property &property) noexcept final {
+        auto item = new tree_widget_item(m_tree_stack.top());
 
-        item->setText(0, QString::fromStdString(property.name));
+        item->setText(0, property.name);
         item->setIcon(0, QIcon::fromTheme("flag-green"));
         item->setData(0, QT_ROLE_NODETYPE, QVariant::fromValue(NodeType::Property));
+        item->setData(0, QT_ROLE_PROPERTY, QVariant::fromValue(property));
+    }
 
-        qt_fdt_property p2;
-        p2.name = QString::fromStdString(property.name);
-        p2.data = std::move(property.data);
-        item->setData(0, QT_ROLE_PROPERTY, QVariant::fromValue(p2));
-    };
+private:
+    tree_widget_item *m_root{nullptr};
+    std::stack<tree_widget_item *> m_tree_stack;
+};
+
+bool fdt::viewer::load(const byte_array &datamap, string &&name, string &&id) {
+    qt_tree_fdt_generator generator(m_tree[id], m_target, std::move(name), std::move(id));
 
     std::vector<fdt_handle_special_property> handle_special_properties;
 
     fdt_handle_special_property handle_inner_dt;
     handle_inner_dt.name = "data";
-    handle_inner_dt.callback = [&handle_special_properties](const fdt_property &property, fdt_generator &generator) {
+    handle_inner_dt.callback = [&handle_special_properties](const fdt_property &property, iface_fdt_generator &generator) {
         fdt_parser(property.data.data(), property.data.size(), generator, property.name, handle_special_properties);
     };
 
@@ -170,7 +170,6 @@ bool fdt::viewer::load(const byte_array &datamap, string &&name, string &&id) {
     fdt_parser parser(datamap.data(), datamap.size(), generator, {}, handle_special_properties);
 
     if (!parser.is_valid()) {
-        delete root;
         return false;
     }
 
@@ -205,7 +204,7 @@ bool fdt::fdt_content_filter(tree_widget_item *node, const std::function<bool(co
         if (isFound)
             break;
 
-        const auto property = item->data(0, QT_ROLE_PROPERTY).value<qt_fdt_property>();
+        const auto property = item->data(0, QT_ROLE_PROPERTY).value<fdt_property>();
         isFound |= match(property.name) || match(present(property));
     }
 
@@ -243,7 +242,7 @@ bool fdt::fdt_view_dts(tree_widget_item *item, string &ret, int depth) {
     ret += depth_str + item->data(0, Qt::DisplayRole).toString() + " {\n";
 
     for (auto item : properties) {
-        const auto property = item->data(0, QT_ROLE_PROPERTY).value<qt_fdt_property>();
+        const auto property = item->data(0, QT_ROLE_PROPERTY).value<fdt_property>();
         ret += depth_str + "    " + present(property) + "\n";
     }
 

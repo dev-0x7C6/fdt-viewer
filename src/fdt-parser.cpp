@@ -3,7 +3,7 @@
 #include <cstring>
 #include <endian-conversions.hpp>
 
-fdt_parser::fdt_parser(const char *data, u64 size, fdt_generator &generator, const std::string &default_root_node, const std::vector<fdt_handle_special_property> &handle_special_properties)
+fdt_parser::fdt_parser(const char *data, u64 size, iface_fdt_generator &generator, const QString &default_root_node, const std::vector<fdt_handle_special_property> &handle_special_properties)
         : m_data(data)
         , m_size(size)
         , m_default_root_node(default_root_node)
@@ -21,13 +21,13 @@ fdt_parser::fdt_parser(const char *data, u64 size, fdt_generator &generator, con
     }
 }
 
-void fdt_parser::parse(const fdt_header header, fdt_generator &generator) {
+void fdt_parser::parse(const fdt_header header, iface_fdt_generator &generator) {
     const auto dt_struct = m_data + header.off_dt_struct;
     const auto dt_strings = m_data + header.off_dt_strings;
 
     auto get_property_name = [&](auto offset) {
         const auto ptr = dt_strings + offset;
-        return std::string(ptr, std::strlen(ptr));
+        return QString::fromUtf8(ptr, std::strlen(ptr));
     };
 
     for (auto iter = dt_struct; iter < dt_struct + header.size_dt_struct;) {
@@ -44,7 +44,7 @@ void fdt_parser::parse(const fdt_header header, fdt_generator &generator) {
 
         if (FDT_TOKEN::BEGIN_NODE == token) {
             const auto size = std::strlen(iter);
-            auto name = std::string_view(iter, size);
+            auto name = QString::fromUtf8(iter, size);
             seek_and_align(size);
             generator.begin_node(size ? name : m_default_root_node);
         }
