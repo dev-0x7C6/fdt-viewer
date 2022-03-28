@@ -1,39 +1,8 @@
 #pragma once
 
-#include <QMetaType>
-#include <QHash>
-
-#include <fdt/fdt-property-types.hpp>
-#include <fdt/fdt-parser.hpp>
-#include <types.hpp>
-
-template <typename... types>
-using hash_map = QHash<types...>;
-
-Q_DECLARE_METATYPE(fdt_property)
-
-constexpr auto QT_ROLE_PROPERTY = Qt::UserRole;
-constexpr auto QT_ROLE_FILEPATH = Qt::UserRole + 1;
-constexpr auto QT_ROLE_NODETYPE = Qt::UserRole + 2;
-
-enum class NodeType {
-    Node,
-    Property
-};
-
-Q_DECLARE_METATYPE(NodeType)
+#include <fdt/fdt-generator-qt.hpp>
 
 namespace fdt {
-
-using node_map = hash_map<string, tree_widget_item *>;
-
-struct tree_info {
-    string id;
-    tree_widget_item *root{nullptr};
-    node_map nodes;
-};
-
-using tree_map = hash_map<string, tree_info>;
 
 class viewer {
 public:

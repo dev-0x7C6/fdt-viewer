@@ -6,6 +6,9 @@ add_executable(fdt-viewer
     dialogs.cpp
     dialogs.hpp
     endian-conversions.hpp
+    fdt/fdt-generator-qt.cpp
+    fdt/fdt-generator-qt.hpp
+    fdt/fdt-generator.hpp
     fdt/fdt-header.hpp
     fdt/fdt-parser.cpp
     fdt/fdt-parser.hpp
