@@ -5,7 +5,7 @@
 #include <QMainWindow>
 #include <memory>
 
-#include <fdt-view.hpp>
+#include <fdt/fdt-view.hpp>
 
 class QHexView;
 class QTreeWidgetItem;

@@ -11,8 +11,8 @@
 
 #include <dialogs.hpp>
 #include <endian-conversions.hpp>
-#include <fdt-parser.hpp>
-#include <fdt-view.hpp>
+#include <fdt/fdt-parser.hpp>
+#include <fdt/fdt-view.hpp>
 #include <menu-manager.hpp>
 #include <viewer-settings.hpp>
 

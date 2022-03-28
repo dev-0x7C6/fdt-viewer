@@ -1,7 +1,7 @@
 #include "fdt-view.hpp"
 
 #include <endian-conversions.hpp>
-#include <fdt-parser.hpp>
+#include <fdt/fdt-parser.hpp>
 
 #include <QTreeWidget>
 #include <QTreeWidgetItem>

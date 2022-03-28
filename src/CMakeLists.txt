@@ -6,12 +6,12 @@ add_executable(fdt-viewer
     dialogs.cpp
     dialogs.hpp
     endian-conversions.hpp
-    fdt-header.hpp
-    fdt-parser.cpp
-    fdt-parser.hpp
-    fdt-property-types.hpp
-    fdt-view.cpp
-    fdt-view.hpp
+    fdt/fdt-header.hpp
+    fdt/fdt-parser.cpp
+    fdt/fdt-parser.hpp
+    fdt/fdt-property-types.hpp
+    fdt/fdt-view.cpp
+    fdt/fdt-view.hpp
     main-window.cpp
     main-window.hpp
     main-window.ui

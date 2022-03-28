@@ -3,9 +3,9 @@
 #include <QMetaType>
 #include <QHash>
 
-#include <fdt-property-types.hpp>
+#include <fdt/fdt-property-types.hpp>
+#include <fdt/fdt-parser.hpp>
 #include <types.hpp>
-#include <fdt-parser.hpp>
 
 template <typename... types>
 using hash_map = QHash<types...>;
