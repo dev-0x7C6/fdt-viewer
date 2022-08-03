@@ -25,10 +25,10 @@ public:
     constexpr bool is_valid() noexcept { return m_header.has_value(); }
 
 private:
-    void parse(const fdt_header header, iface_fdt_generator &generator);
+    void parse(const fdt::header header, iface_fdt_generator &generator);
 
 private:
-    std::optional<fdt_header> m_header;
+    std::optional<fdt::header> m_header;
     const QString m_default_root_node;
     const std::vector<fdt_handle_special_property> &m_handle_special_properties;
 
