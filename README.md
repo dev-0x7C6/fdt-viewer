@@ -24,13 +24,23 @@ Options:
   -d, --directory <directory>  open directory.
 ```
 
-#### Installation process
+#### Installation
 ```console
 user@host # git clone --recursive https://github.com/dev-0x7C6/fdt-viewer.git
 user@host # cd fdt-viewer
 user@host # cmake . -DCMAKE_INSTALL_PREFIX=/usr
 user@host # make -j$(nproc)
 root@host # make install
+```
+
+#### Packaging with Docker
+Create a Debian package of ftd-viewer in a Docker container and install it to the host system:
+```console
+user@host # git clone --recursive https://github.com/dev-0x7C6/fdt-viewer.git
+user@host # cd fdt-viewer
+user@host # cmake .
+user@host # make docker
+root@host # dpkg -i "fdt-viewer*.deb"
 ```
 
 #### Known bugs
