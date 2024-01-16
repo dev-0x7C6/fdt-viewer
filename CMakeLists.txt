@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.12)
+cmake_minimum_required(VERSION 3.26)
 
 project(fdt-viewer VERSION 0.8.1 LANGUAGES CXX)
 
@@ -8,11 +8,11 @@ set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 
-set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-find_package(Qt5 COMPONENTS Widgets)
-if (Qt5_FOUND)
+find_package(Qt6 COMPONENTS Widgets Core)
+if (Qt6_FOUND)
 	add_subdirectory("src")
 
 	if (UNIX)

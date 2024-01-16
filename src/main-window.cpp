@@ -16,9 +16,8 @@
 #include <menu-manager.hpp>
 #include <viewer-settings.hpp>
 
-#include <document/buffer/qmemorybuffer.h>
-#include <document/qhexdocument.h>
-#include <qhexview.h>
+#include "submodules/qhexview/model/buffer/qmemorybuffer.h"
+#include "submodules/qhexview/qhexview.h"
 
 using namespace Window;
 

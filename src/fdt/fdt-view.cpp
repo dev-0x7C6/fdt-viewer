@@ -47,16 +47,16 @@ string present(const fdt_property &property) {
             return result_str({data});
 
         if (property_type::number == info.type)
-            return result(string::number(u32_be(data.data())));
+            return result(string::number(convert(*reinterpret_cast<const u32 *>(data.data()))));
     }
 
-    const static regexp cells_regexp("^#.*-cells$");
-    const static regexp names_regexp("^.*-names");
+    const static QRegularExpression cells_regexp("^#.*-cells$");
+    const static QRegularExpression names_regexp("^.*-names");
 
-    if (cells_regexp.exactMatch(name))
-        return result(string::number(u32_be(data.data())));
+    if (cells_regexp.match(name).hasMatch())
+        return result(string::number(convert(*reinterpret_cast<const u32 *>(data.data()))));
 
-    if (names_regexp.exactMatch(name)) {
+    if (names_regexp.match(name).hasMatch()) {
         auto lines = data.split(0);
         lines.removeLast();
 

@@ -27,5 +27,5 @@ add_executable(fdt-viewer
     ../resources.qrc
 )
 
-target_link_libraries(fdt-viewer PRIVATE Qt5::Widgets qhexview-lib)
+target_link_libraries(fdt-viewer PRIVATE Qt6::Widgets Qt6::Core QHexView)
 install(TARGETS fdt-viewer RUNTIME DESTINATION bin)

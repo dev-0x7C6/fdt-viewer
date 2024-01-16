@@ -1,6 +1,8 @@
 #pragma once
 
 #include <cstdint>
+#include <QStringList>
+#include <QRegularExpression>
 
 using i16 = std::int16_t;
 using i32 = std::int32_t;
@@ -21,7 +23,6 @@ class QFile;
 class QFileInfo;
 class QRegExp;
 class QString;
-class QStringList;
 class QTreeWidget;
 class QTreeWidgetItem;
 class QWidget;
@@ -33,7 +34,6 @@ using byte_array = QByteArray;
 using dir_iterator = QDirIterator;
 using file = QFile;
 using file_info = QFileInfo;
-using regexp = QRegExp;
 using string = QString;
 using string_list = QStringList;
 using tree_widget = QTreeWidget;

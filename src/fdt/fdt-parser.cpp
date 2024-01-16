@@ -39,7 +39,7 @@ void fdt_parser::parse(const fdt::header header, iface_fdt_generator &generator)
             return iter += size;
         };
 
-        const auto token = static_cast<fdt::token>(u32_be(iter));
+        const auto token = static_cast<fdt::token>(convert(*reinterpret_cast<const u32 *>(iter)));
         seek_and_align(sizeof(token));
 
         if (fdt::token::begin_node == token) {
