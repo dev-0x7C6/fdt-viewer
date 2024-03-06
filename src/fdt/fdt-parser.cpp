@@ -10,7 +10,10 @@ fdt_parser::fdt_parser(const char *data, u64 size, iface_fdt_generator &generato
         , m_handle_special_properties(handle_special_properties) {
     if (size >= sizeof(fdt::header)) {
         auto header = read_data_32be<fdt::header>(data);
-        if (FDT_MAGIC_VALUE != header.magic || size != header.totalsize)
+        if (FDT_MAGIC_VALUE != header.magic)
+            return;
+
+        if (size < header.totalsize)
             return;
 
         if (FDT_SUPPORT_ABOVE > header.version)
