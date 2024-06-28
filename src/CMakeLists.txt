@@ -2,28 +2,12 @@ configure_file(config.h.in config.h)
 
 add_subdirectory("submodules/qhexview")
 
+file(GLOB_RECURSE fdt-viewer-headers *.hpp)
+file(GLOB_RECURSE fdt-viewer-sources *.cpp)
+
 add_executable(fdt-viewer
-    dialogs.cpp
-    dialogs.hpp
-    endian-conversions.hpp
-    fdt/fdt-generator-qt.cpp
-    fdt/fdt-generator-qt.hpp
-    fdt/fdt-generator.hpp
-    fdt/fdt-header.hpp
-    fdt/fdt-parser.cpp
-    fdt/fdt-parser.hpp
-    fdt/fdt-property-types.hpp
-    fdt/fdt-view.cpp
-    fdt/fdt-view.hpp
-    main-window.cpp
-    main-window.hpp
-    main-window.ui
-    main.cpp
-    menu-manager.cpp
-    menu-manager.hpp
-    types.hpp
-    viewer-settings.cpp
-    viewer-settings.hpp
+    ${fdt-viewer-headers}
+    ${fdt-viewer-sources}
     ../resources.qrc
 )
 
