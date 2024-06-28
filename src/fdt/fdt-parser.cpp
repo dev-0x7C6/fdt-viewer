@@ -160,8 +160,10 @@ void fdt_parser::parse(const fdt::header header, iface_fdt_generator &generator)
     using namespace fdt::tokenizer::types;
     context ctx;
 
-    auto begin = reinterpret_cast<const u32 *>(dt_struct);
-    auto end = reinterpret_cast<const u32 *>(dt_struct) + header.size_dt_struct / sizeof(u32);
+    const auto begin = reinterpret_cast<const u32 *>(dt_struct);
+    const auto end = reinterpret_cast<const u32 *>(dt_struct) + header.size_dt_struct / sizeof(u32);
+
+    const auto is_aligned = (header.size_dt_struct % sizeof(u32)) == 0;
 
     for (auto iter = begin; iter != end;) {
         const auto id = static_cast<u32>(convert(*iter));
@@ -193,6 +195,7 @@ void fdt_parser::parse(const fdt::header header, iface_fdt_generator &generator)
         return std::holds_alternative<types::end>(v);
     });
 
+    std::cout << "is_aligned       : " << is_aligned << std::endl;
     std::cout << "node begin  count: " << node_begin_count << std::endl;
     std::cout << "node end    count: " << node_end_count << std::endl;
     std::cout << "property    count: " << property_count << std::endl;
