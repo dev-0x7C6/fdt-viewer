@@ -30,7 +30,7 @@ constexpr auto id_of(end) -> u32 { return 0x09; };
 
 } // namespace types
 
-using token = std::variant<types::node_begin, types::node_end, types::property, types::nop, types::end>;
+using token = std::variant<types::property, types::node_begin, types::node_end, types::nop, types::end>;
 using token_list = std::vector<token>;
 
 struct context {

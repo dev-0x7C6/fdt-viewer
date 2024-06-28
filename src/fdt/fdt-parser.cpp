@@ -1,4 +1,5 @@
 #include "fdt-parser.hpp"
+#include "fdt/fdt-header.hpp"
 #include <ostream>
 #include <string_view>
 #include <variant>
@@ -141,6 +142,11 @@ auto foreach_token_type(std::variant<Ts...>, const u32 token_id, const char *dat
     return (conditional_parse(Ts{}) || ...);
 }
 
+template <class... Ts>
+struct overloaded : Ts... {
+    using Ts::operator()...;
+};
+
 void fdt_parser::parse(const fdt::header header, iface_fdt_generator &generator) {
     const auto dt_struct = m_data + header.off_dt_struct;
     const auto dt_strings = m_data + header.off_dt_strings;
@@ -192,4 +198,17 @@ void fdt_parser::parse(const fdt::header header, iface_fdt_generator &generator)
     std::cout << "property    count: " << property_count << std::endl;
     std::cout << "nop         count: " << nop_count << std::endl;
     std::cout << "end         count: " << end_count << std::endl;
+
+    for (auto &&token : ctx.tokens)
+        std::visit(overloaded{
+                       [&](node_begin &arg) { generator.begin_node(QString::fromUtf8(arg.name.data(), arg.name.size())); },
+                       [&](node_end &arg) { generator.end_node(); },
+                       [&](property &arg) { generator.insert_property(fdt_property{
+                                                .name = QString::fromUtf8(arg.name.data(), arg.name.size()),
+                                                .data = QByteArray(arg.data.data(), arg.data.size()),
+                                            }); },
+                       [&](nop &) {},
+                       [&](types::end &) {},
+                   },
+            token);
 }
