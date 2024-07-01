@@ -1,10 +1,9 @@
 #pragma once
 
-#include <type_traits>
-#include <variant>
-#include <string_view>
-#include <vector>
 #include <cstdint>
+#include <string_view>
+#include <variant>
+#include <vector>
 
 using u32 = std::uint32_t;
 
@@ -37,6 +36,11 @@ struct context {
     std::string_view structs;
     std::string_view strings;
     token_list tokens;
+
+    struct {
+        const char *data{nullptr};
+        int skip{};
+    } state;
 };
 
 template <typename T>
