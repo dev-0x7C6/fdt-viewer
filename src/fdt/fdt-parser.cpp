@@ -5,30 +5,29 @@
 #include <algorithm>
 #include <cstring>
 #include <iostream>
+#include <mutex>
 #include <ostream>
 #include <string_view>
 #include <variant>
 
 #include <endian-conversions.hpp>
 
-fdt_parser::fdt_parser(const char *data, u64 size, iface_fdt_generator &generator, const QString &default_root_node, const std::vector<fdt_handle_special_property> &handle_special_properties)
-        : m_data(data)
-        , m_size(size)
-        , m_default_root_node(default_root_node)
-        , m_handle_special_properties(handle_special_properties) {
-    if (size >= sizeof(fdt::header)) {
-        auto header = read_data_32be<fdt::header>(data);
+fdt_parser::fdt_parser(std::string_view view, fdt::tokenizer::token_list &tokens, const std::string &default_root_node)
+        : view(view)
+        , default_root_node_name(default_root_node) {
+    if (view.size() >= sizeof(fdt::header)) {
+        auto header = read_data_32be<fdt::header>(view.data());
         if (FDT_MAGIC_VALUE != header.magic)
             return;
 
-        if (size < header.totalsize)
+        if (view.size() < header.totalsize)
             return;
 
         if (FDT_SUPPORT_ABOVE > header.version)
             return;
 
         m_header = std::move(header);
-        parse(m_header.value(), generator);
+        parse(m_header.value(), tokens);
     }
 }
 
@@ -89,7 +88,7 @@ void fdt_parser::parse(const fdt::header header, iface_fdt_generator &generator)
 auto align(const std::size_t size) {
     const auto q = size % sizeof(u32);
     const auto w = size / sizeof(u32);
-    return std::max<u32>(1u, w + (q ? 1u : 0u));
+    return w + (q ? 1u : 0u);
 };
 
 namespace fdt::parser {
@@ -144,14 +143,9 @@ auto foreach_token_type(std::variant<Ts...>, const u32 token_id, fdt::tokenizer:
     return (conditional_parse(Ts{}) || ...);
 }
 
-template <class... Ts>
-struct overloaded : Ts... {
-    using Ts::operator()...;
-};
-
-void fdt_parser::parse(const fdt::header header, iface_fdt_generator &generator) {
-    const auto dt_struct = m_data + header.off_dt_struct;
-    const auto dt_strings = m_data + header.off_dt_strings;
+void fdt_parser::parse(const fdt::header header, fdt::tokenizer::token_list &tokens) {
+    const auto dt_struct = view.data() + header.off_dt_struct;
+    const auto dt_strings = view.data() + header.off_dt_strings;
 
     auto get_property_name = [&](auto offset) {
         const auto ptr = dt_strings + offset;
@@ -164,6 +158,7 @@ void fdt_parser::parse(const fdt::header header, iface_fdt_generator &generator)
     context ctx{
         .structs = {dt_struct, header.size_dt_struct}, //
         .strings = {dt_strings, header.size_dt_strings}, //
+        .tokens = tokens,
     };
 
     const auto begin = reinterpret_cast<const u32 *>(dt_struct);
@@ -171,65 +166,57 @@ void fdt_parser::parse(const fdt::header header, iface_fdt_generator &generator)
 
     const auto is_aligned = (header.size_dt_struct % sizeof(u32)) == 0;
 
+    std::once_flag root_node_rename;
+
     for (auto iter = begin; iter != end;) {
         const auto id = static_cast<u32>(convert(*iter));
         ctx.state.data = reinterpret_cast<const char *>(++iter);
         ctx.state.skip = 0;
 
-        if (!foreach_token_type(token{}, id, ctx))
-            break;
+        if (!foreach_token_type(token{}, id, ctx)) {
+            std::cout << id << std::endl;
+        }
 
-        // if (!ctx.tokens.empty() && std::holds_alternative<types::end>(ctx.tokens.back()))
-        //     break;
+        if (!ctx.tokens.empty() && std::holds_alternative<types::node_begin>(tokens.back())) {
+            std::call_once(root_node_rename, [&]() {
+                auto &x = std::get<types::node_begin>(tokens.back());
+                x.name = default_root_node_name;
+            });
+        }
 
         iter += ctx.state.skip;
+
+        if (!ctx.tokens.empty() && std::holds_alternative<types::property>(tokens.back())) {
+            auto &x = std::get<types::property>(tokens.back());
+            if (x.name == "data")
+                fdt_parser parser(x.data, tokens, "data");
+        }
     }
 
-    const auto node_begin_count = std::ranges::count_if(ctx.tokens, [](auto &&v) {
-        return std::holds_alternative<node_begin>(v);
-    });
+    // const auto node_begin_count = std::ranges::count_if(ctx.tokens, [](auto &&v) {
+    //     return std::holds_alternative<node_begin>(v);
+    // });
 
-    const auto node_end_count = std::ranges::count_if(ctx.tokens, [](auto &&v) {
-        return std::holds_alternative<node_end>(v);
-    });
+    // const auto node_end_count = std::ranges::count_if(ctx.tokens, [](auto &&v) {
+    //     return std::holds_alternative<node_end>(v);
+    // });
 
-    const auto property_count = std::ranges::count_if(ctx.tokens, [](auto &&v) {
-        return std::holds_alternative<property>(v);
-    });
+    // const auto property_count = std::ranges::count_if(ctx.tokens, [](auto &&v) {
+    //     return std::holds_alternative<property>(v);
+    // });
 
-    const auto nop_count = std::ranges::count_if(ctx.tokens, [](auto &&v) {
-        return std::holds_alternative<nop>(v);
-    });
+    // const auto nop_count = std::ranges::count_if(ctx.tokens, [](auto &&v) {
+    //     return std::holds_alternative<nop>(v);
+    // });
 
-    const auto end_count = std::ranges::count_if(ctx.tokens, [](auto &&v) {
-        return std::holds_alternative<types::end>(v);
-    });
+    // const auto end_count = std::ranges::count_if(ctx.tokens, [](auto &&v) {
+    //     return std::holds_alternative<types::end>(v);
+    // });
 
-    std::cout << "is_aligned : " << is_aligned << std::endl;
-    std::cout << "node begin : " << node_begin_count << std::endl;
-    std::cout << "node end   : " << node_end_count << std::endl;
-    std::cout << "property   : " << property_count << std::endl;
-    std::cout << "nop        : " << nop_count << std::endl;
-    std::cout << "end        : " << end_count << std::endl;
-
-    for (auto &&token : ctx.tokens)
-        std::visit(overloaded{
-                       [&](node_begin &arg) { generator.begin_node(QString::fromUtf8(arg.name.data(), arg.name.size())); },
-                       [&](node_end &arg) { generator.end_node(); },
-                       [&](property &arg) {
-                           auto property = fdt_property{
-                               .name = QString::fromUtf8(arg.name.data(), arg.name.size()),
-                               .data = QByteArray(arg.data.data(), arg.data.size()),
-                           };
-
-                           generator.insert_property(property);
-
-                           // for (auto &&handle : m_handle_special_properties)
-                           //     if (handle.name.toStdString() == arg.name)
-                           //         handle.callback(property, generator);
-                       },
-                       [&](nop &) {},
-                       [&](types::end &) {},
-                   },
-            token);
+    // std::cout << "is_aligned : " << is_aligned << std::endl;
+    // std::cout << "node begin : " << node_begin_count << std::endl;
+    // std::cout << "node end   : " << node_end_count << std::endl;
+    // std::cout << "property   : " << property_count << std::endl;
+    // std::cout << "nop        : " << nop_count << std::endl;
+    // std::cout << "end        : " << end_count << std::endl;
 }

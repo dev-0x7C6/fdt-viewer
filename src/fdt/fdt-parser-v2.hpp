@@ -11,7 +11,7 @@ namespace fdt::tokenizer {
 
 namespace types {
 struct node_begin {
-    std::string_view name;
+    std::string name;
 };
 struct node_end {};
 struct property {
@@ -35,7 +35,7 @@ using token_list = std::vector<token>;
 struct context {
     std::string_view structs;
     std::string_view strings;
-    token_list tokens;
+    token_list &tokens;
 
     struct {
         const char *data{nullptr};

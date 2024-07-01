@@ -8,7 +8,10 @@
 #include <QTreeWidgetItem>
 #include <QFileInfo>
 
+#include "fdt/fdt-parser-v2.hpp"
 #include <stack>
+#include <string_view>
+#include <vector>
 
 namespace {
 constexpr auto BINARY_PREVIEW_LIMIT = 256;
@@ -90,24 +93,38 @@ auto fdt::viewer::is_loaded(const string &id) const noexcept -> bool {
     return m_tree.contains(id);
 }
 
+template <class... Ts>
+struct overloaded : Ts... {
+    using Ts::operator()...;
+};
+
 bool fdt::viewer::load(const byte_array &datamap, string &&name, string &&id) {
     qt_tree_fdt_generator generator(m_tree[id], m_target, std::move(name), std::move(id));
 
-    std::vector<fdt_handle_special_property> handle_special_properties;
+    fdt::tokenizer::token_list tokens;
+    fdt_parser parser({datamap.data(), datamap.size()}, tokens, {});
 
-    fdt_handle_special_property handle_inner_dt;
-    handle_inner_dt.name = "data";
-    handle_inner_dt.callback = [&handle_special_properties](const fdt_property &property, iface_fdt_generator &generator) {
-        fdt_parser(property.data.data(), property.data.size(), generator, property.name, handle_special_properties);
-    };
-
-    handle_special_properties.emplace_back(std::move(handle_inner_dt));
-
-    fdt_parser parser(datamap.data(), datamap.size(), generator, {}, handle_special_properties);
-
-    if (!parser.is_valid()) {
+    if (!parser.is_valid())
         return false;
-    }
+
+    using namespace fdt::tokenizer;
+
+    for (auto &&token : tokens)
+        std::visit(overloaded{
+                       [&](types::node_begin &arg) { generator.begin_node(QString::fromUtf8(arg.name.data(), arg.name.size())); },
+                       [&](types::node_end &arg) { generator.end_node(); },
+                       [&](types::property &arg) {
+                           auto property = fdt_property{
+                               .name = QString::fromUtf8(arg.name.data(), arg.name.size()),
+                               .data = QByteArray(arg.data.data(), arg.data.size()),
+                           };
+
+                           generator.insert_property(property);
+                       },
+                       [&](types::nop &) {},
+                       [&](types::end &) {},
+                   },
+            token);
 
     return true;
 }
