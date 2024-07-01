@@ -30,61 +30,6 @@ fdt_parser::fdt_parser(std::string_view view, fdt::tokenizer::token_list &tokens
         parse(m_header.value(), tokens);
     }
 }
-
-/*
-void fdt_parser::parse(const fdt::header header, iface_fdt_generator &generator) {
-    const auto dt_struct = m_data + header.off_dt_struct;
-    const auto dt_strings = m_data + header.off_dt_strings;
-
-    auto get_property_name = [&](auto offset) {
-        const auto ptr = dt_strings + offset;
-        return QString::fromUtf8(ptr, std::strlen(ptr));
-    };
-
-    for (auto iter = dt_struct; iter < dt_struct + header.size_dt_struct;) {
-        auto seek_and_align = [&iter](const std::size_t size) {
-            const auto value = size % sizeof(fdt::token);
-            if (value)
-                return iter += size + sizeof(fdt::token) - value;
-
-            return iter += size;
-        };
-
-        const auto token = static_cast<fdt::token>(convert(*reinterpret_cast<const u32 *>(iter)));
-        seek_and_align(sizeof(token));
-
-        if (fdt::token::begin_node == token) {
-            const auto size = std::strlen(iter);
-            auto name = QString::fromUtf8(iter, size);
-            seek_and_align(size);
-            generator.begin_node(size ? name : m_default_root_node);
-        }
-
-        if (fdt::token::end_node == token)
-            generator.end_node();
-
-        if (fdt::token::property == token) {
-            const auto header = read_data_32be<fdt::property>(iter);
-            seek_and_align(sizeof(header));
-
-            fdt_property property;
-            property.data = QByteArray(iter, header.len);
-            seek_and_align(header.len);
-
-            property.name = get_property_name(header.nameoff);
-            generator.insert_property(property);
-
-            for (auto &&handle : m_handle_special_properties)
-                if (handle.name == property.name)
-                    handle.callback(property, generator);
-        }
-
-        if (fdt::token::end == token)
-            break;
-    }
-}
-*/
-
 auto align(const std::size_t size) {
     const auto q = size % sizeof(u32);
     const auto w = size / sizeof(u32);
@@ -193,30 +138,30 @@ void fdt_parser::parse(const fdt::header header, fdt::tokenizer::token_list &tok
         }
     }
 
-    // const auto node_begin_count = std::ranges::count_if(ctx.tokens, [](auto &&v) {
-    //     return std::holds_alternative<node_begin>(v);
-    // });
+    const auto node_begin_count = std::ranges::count_if(ctx.tokens, [](auto &&v) {
+        return std::holds_alternative<node_begin>(v);
+    });
 
-    // const auto node_end_count = std::ranges::count_if(ctx.tokens, [](auto &&v) {
-    //     return std::holds_alternative<node_end>(v);
-    // });
+    const auto node_end_count = std::ranges::count_if(ctx.tokens, [](auto &&v) {
+        return std::holds_alternative<node_end>(v);
+    });
 
-    // const auto property_count = std::ranges::count_if(ctx.tokens, [](auto &&v) {
-    //     return std::holds_alternative<property>(v);
-    // });
+    const auto property_count = std::ranges::count_if(ctx.tokens, [](auto &&v) {
+        return std::holds_alternative<property>(v);
+    });
 
-    // const auto nop_count = std::ranges::count_if(ctx.tokens, [](auto &&v) {
-    //     return std::holds_alternative<nop>(v);
-    // });
+    const auto nop_count = std::ranges::count_if(ctx.tokens, [](auto &&v) {
+        return std::holds_alternative<nop>(v);
+    });
 
-    // const auto end_count = std::ranges::count_if(ctx.tokens, [](auto &&v) {
-    //     return std::holds_alternative<types::end>(v);
-    // });
+    const auto end_count = std::ranges::count_if(ctx.tokens, [](auto &&v) {
+        return std::holds_alternative<types::end>(v);
+    });
 
-    // std::cout << "is_aligned : " << is_aligned << std::endl;
-    // std::cout << "node begin : " << node_begin_count << std::endl;
-    // std::cout << "node end   : " << node_end_count << std::endl;
-    // std::cout << "property   : " << property_count << std::endl;
-    // std::cout << "nop        : " << nop_count << std::endl;
-    // std::cout << "end        : " << end_count << std::endl;
+    std::cout << "is_aligned : " << is_aligned << std::endl;
+    std::cout << "node begin : " << node_begin_count << std::endl;
+    std::cout << "node end   : " << node_end_count << std::endl;
+    std::cout << "property   : " << property_count << std::endl;
+    std::cout << "nop        : " << nop_count << std::endl;
+    std::cout << "end        : " << end_count << std::endl;
 }

@@ -9,6 +9,7 @@
 #include <QFileInfo>
 
 #include "fdt/fdt-parser-v2.hpp"
+#include "qnamespace.h"
 #include <stack>
 #include <string_view>
 #include <vector>
@@ -47,7 +48,7 @@ string present(const fdt_property &property) {
     if (property_map.contains(name)) {
         const property_info info = property_map.value(name);
         if (property_type::string == info.type)
-            return result_str({data});
+            return result_str(QString(data.data()));
 
         if (property_type::number == info.type)
             return result(string::number(convert(*reinterpret_cast<const u32 *>(data.data()))));
@@ -60,7 +61,7 @@ string present(const fdt_property &property) {
         return result(string::number(convert(*reinterpret_cast<const u32 *>(data.data()))));
 
     if (names_regexp.match(name).hasMatch()) {
-        auto lines = data.split(0);
+        auto lines = QByteArray::fromRawData(data.data(), data.size()).split(0);
         lines.removeLast();
 
         string ret;
@@ -75,9 +76,9 @@ string present(const fdt_property &property) {
     }
 
     if (std::count_if(data.begin(), data.end(), [](auto &&value) { return value == 0x00; }) == 1 &&
-        data.at(data.size() - 1) == 0x00) return result_str({property.data});
+        data.at(data.size() - 1) == 0x00) return result_str(QString{property.data.data()});
 
-    return result(present_u32be(property.data));
+    return result(present_u32be(QByteArray::fromRawData(data.data(), data.size())));
 }
 } // namespace
 
@@ -116,7 +117,7 @@ bool fdt::viewer::load(const byte_array &datamap, string &&name, string &&id) {
                        [&](types::property &arg) {
                            auto property = fdt_property{
                                .name = QString::fromUtf8(arg.name.data(), arg.name.size()),
-                               .data = QByteArray(arg.data.data(), arg.data.size()),
+                               .data = arg.data,
                            };
 
                            generator.insert_property(property);
@@ -125,6 +126,8 @@ bool fdt::viewer::load(const byte_array &datamap, string &&name, string &&id) {
                        [&](types::end &) {},
                    },
             token);
+
+    generator.root()->setData(0, Qt::UserRole + 1000, datamap);
 
     return true;
 }

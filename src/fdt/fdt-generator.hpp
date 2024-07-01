@@ -1,15 +1,15 @@
 #pragma once
 
+#include <string_view>
 #include <QByteArray>
 #include <QString>
 
 struct fdt_property {
     QString name;
-    QByteArray data;
+    std::string_view data;
 
     auto clear() noexcept {
         name.clear();
-        data.clear();
     }
 };
 

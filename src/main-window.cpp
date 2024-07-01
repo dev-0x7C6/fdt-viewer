@@ -181,7 +181,7 @@ void MainWindow::update_view() {
 
     if (NodeType::Property == type) {
         const auto property = item->data(0, QT_ROLE_PROPERTY).value<fdt_property>();
-        m_hexview->setDocument(QHexDocument::fromMemory<QMemoryBuffer>(property.data));
+        m_hexview->setDocument(QHexDocument::fromMemory<QMemoryBuffer>(QByteArray::fromRawData(property.data.data(), property.data.size())));
     }
 
     m_ui->text_view->clear();
@@ -203,7 +203,7 @@ void MainWindow::property_export() {
 
     if (NodeType::Property == type) {
         const auto property = item->data(0, QT_ROLE_PROPERTY).value<fdt_property>();
-        m_hexview->setDocument(QHexDocument::fromMemory<QMemoryBuffer>(property.data));
-        fdt::export_property_file_dialog(this, property.data, property.name);
+        m_hexview->setDocument(QHexDocument::fromMemory<QMemoryBuffer>(QByteArray::fromRawData(property.data.data(), property.data.size())));
+        fdt::export_property_file_dialog(this, QByteArray::fromRawData(property.data.data(), property.data.size()), property.name);
     }
 }

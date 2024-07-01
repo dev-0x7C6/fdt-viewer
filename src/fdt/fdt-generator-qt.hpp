@@ -43,6 +43,8 @@ struct qt_tree_fdt_generator : public iface_fdt_generator {
     void end_node() noexcept final;
     void insert_property(const fdt_property &property) noexcept final;
 
+    auto root() { return m_root; }
+
 private:
     tree_widget_item *m_root{nullptr};
     std::stack<tree_widget_item *> m_tree_stack;
