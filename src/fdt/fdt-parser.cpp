@@ -69,7 +69,7 @@ auto foreach_token_type(std::variant<Ts...>, const u32 token_id, fdt::parser::co
     return (conditional_parse(Ts{}) || ...);
 }
 
-auto fdt::parser::parse(std::string_view view, std::string_view root_name) -> std::expected<fdt::parser::tokens, fdt::parser::error> {
+auto fdt::parser::parse(std::string_view view) -> std::expected<fdt::parser::tokens, fdt::parser::error> {
     using error = fdt::parser::error;
 
     if (view.size() < sizeof(decode::header))
@@ -117,21 +117,25 @@ auto fdt::parser::parse(std::string_view view, std::string_view root_name) -> st
         if (std::holds_alternative<token_types::property>(tokens.back())) {
             auto &prop = std::get<token_types::property>(tokens.back());
 
-            if (auto dtb = fdt::parser::parse(prop.data, prop.name); dtb.has_value()) {
+            if (auto dtb = fdt::parser::parse(prop.data); dtb.has_value()) {
                 auto &embedded_tokens = dtb.value();
+                rename_root(embedded_tokens, prop.name);
                 std::move(std::begin(embedded_tokens), std::end(embedded_tokens), std::back_inserter(tokens));
             }
         }
     }
 
-    // change property name for first node
+    return tokens;
+}
+
+auto fdt::parser::rename_root(fdt::parser::tokens &tokens, std::string_view name) -> bool {
     for (auto &&token : tokens)
         if (std::holds_alternative<token_types::node_begin>(token)) {
-            std::get<token_types::node_begin>(token).name = root_name;
-            break;
+            std::get<token_types::node_begin>(token).name = name;
+            return true;
         }
 
-    return tokens;
+    return false;
 }
 
 template <class... Ts>

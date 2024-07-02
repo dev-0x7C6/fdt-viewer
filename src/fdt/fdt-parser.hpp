@@ -16,6 +16,8 @@ enum class error {
     unsupported_version,
 };
 
-auto parse(std::string_view view, std::string_view root_name) -> std::expected<tokens, error>;
+auto parse(std::string_view data) -> std::expected<tokens, error>;
 auto validate(const tokens &) -> bool;
+auto rename_root(tokens &, std::string_view name) -> bool;
+
 } // namespace fdt::parser

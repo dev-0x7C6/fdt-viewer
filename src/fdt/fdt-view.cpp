@@ -102,13 +102,15 @@ bool fdt::viewer::load(QByteArray &&data, string &&name, string &&id) {
     using namespace fdt::parser;
     using namespace fdt::qt_wrappers;
 
-    const auto tokens = parse({data.data(), data.size()}, name.toStdString());
+    auto tokens = parse({data.data(), data.size()});
 
     if (!tokens)
         return false;
 
     if (!validate(tokens.value()))
         return false;
+
+    fdt::parser::rename_root(tokens.value(), name.toStdString());
 
     tree_generator generator(m_tree[id], m_target, std::move(name), std::move(id));
 
