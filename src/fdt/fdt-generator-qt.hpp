@@ -1,6 +1,5 @@
 #pragma once
 
-#include <fdt/fdt-generator.hpp>
 #include <fdt/fdt-header.hpp>
 #include <fdt/fdt-property-types.hpp>
 #include <types.hpp>
@@ -8,7 +7,7 @@
 #include <QMetaType>
 #include <QTreeWidgetItem>
 #include <QHash>
-#include "fdt/fdt-parser-v2.hpp"
+#include "fdt/fdt-parser-tokens.hpp"
 #include <stack>
 #include <string_view>
 
@@ -38,12 +37,14 @@ struct tree_info {
 
 using tree_map = hash_map<string, tree_info>;
 
-struct qt_tree_fdt_generator : public iface_fdt_generator {
-    qt_tree_fdt_generator(tree_info &reference, tree_widget *target, string &&name, string &&id);
+namespace fdt::qt_wrappers {
 
-    void begin_node(std::string_view) noexcept final;
-    void end_node() noexcept final;
-    void insert_property(const fdt::tokenizer::types::property &) noexcept final;
+struct tree_generator {
+    tree_generator(tree_info &reference, tree_widget *target, string &&name, string &&id);
+
+    void begin_node(std::string_view) noexcept;
+    void end_node() noexcept;
+    void insert_property(const fdt::parser::token_types::property &) noexcept;
 
     auto root() { return m_root; }
 
@@ -51,3 +52,5 @@ private:
     QTreeWidgetItem *m_root{nullptr};
     std::stack<QTreeWidgetItem *> m_tree_stack;
 };
+
+} // namespace fdt::qt_wrappers

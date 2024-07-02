@@ -8,9 +8,8 @@
 
 using u32 = std::uint32_t;
 
-namespace fdt::tokenizer {
+namespace fdt::parser::token_types {
 
-namespace types {
 struct node_begin {
     std::string name;
 };
@@ -28,25 +27,23 @@ constexpr auto id_of(property) -> u32 { return 0x03; };
 constexpr auto id_of(nop) -> u32 { return 0x04; };
 constexpr auto id_of(end) -> u32 { return 0x09; };
 
-} // namespace types
+} // namespace fdt::parser::token_types
 
-using token = std::variant<types::property, types::node_begin, types::node_end, types::nop, types::end>;
-using token_list = std::vector<token>;
+namespace fdt::parser {
 
-struct context {
-    std::string_view structs;
-    std::string_view strings;
-    token_list &tokens;
+using token = std::variant<
+    token_types::property,   //
+    token_types::node_begin, //
+    token_types::node_end,   //
+    token_types::nop,        //
+    token_types::end         //
+    >;
 
-    struct {
-        const char *data{nullptr};
-        int skip{};
-    } state;
-};
+using tokens = std::vector<token>;
 
 template <typename T>
 concept Tokenizable = requires(T t) {
-    { fdt::tokenizer::types::id_of(t) } -> std::convertible_to<u32>;
+    { fdt::parser::token_types::id_of(t) } -> std::convertible_to<u32>;
 };
 
-} // namespace fdt::tokenizer
+} // namespace fdt::parser

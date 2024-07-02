@@ -8,7 +8,7 @@
 #include <QTreeWidgetItem>
 #include <QFileInfo>
 
-#include "fdt/fdt-parser-v2.hpp"
+#include "fdt/fdt-parser-tokens.hpp"
 #include "fdt/fdt-property-types.hpp"
 #include "qnamespace.h"
 #include <string_view>
@@ -99,25 +99,26 @@ struct overloaded : Ts... {
 };
 
 bool fdt::viewer::load(QByteArray &&data, string &&name, string &&id) {
-    qt_tree_fdt_generator generator(m_tree[id], m_target, std::move(name), std::move(id));
+    using namespace fdt::parser;
+    using namespace fdt::qt_wrappers;
 
-    const auto tokens = fdt::tokenizer::generator({data.data(), data.size()}, name.toStdString());
+    const auto tokens = parse({data.data(), data.size()}, name.toStdString());
 
     if (!tokens)
         return false;
 
-    if (!fdt::tokenizer::validate(tokens.value()))
+    if (!validate(tokens.value()))
         return false;
 
-    using namespace fdt::tokenizer;
+    tree_generator generator(m_tree[id], m_target, std::move(name), std::move(id));
 
     for (auto &&token : tokens.value())
         std::visit(overloaded{
-                       [&](const types::node_begin &arg) { generator.begin_node(arg.name); },
-                       [&](const types::node_end &) { generator.end_node(); },
-                       [&](const types::property &arg) { generator.insert_property(arg); },
-                       [&](const types::nop &) {},
-                       [&](const types::end &) {},
+                       [&](const token_types::node_begin &arg) { generator.begin_node(arg.name); },
+                       [&](const token_types::node_end &) { generator.end_node(); },
+                       [&](const token_types::property &arg) { generator.insert_property(arg); },
+                       [&](const token_types::nop &) {},
+                       [&](const token_types::end &) {},
                    },
             token);
 

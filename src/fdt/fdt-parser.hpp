@@ -1,11 +1,11 @@
 #pragma once
 
-#include "fdt/fdt-parser-v2.hpp"
+#include "fdt/fdt-parser-tokens.hpp"
 
 #include <string_view>
 #include <expected>
 
-namespace fdt {
+namespace fdt::parser {
 
 enum class error {
     invalid_header,
@@ -16,8 +16,6 @@ enum class error {
     unsupported_version,
 };
 
-namespace tokenizer {
-auto generator(std::string_view view, std::string_view root_name) -> std::expected<fdt::tokenizer::token_list, error>;
-auto validate(const fdt::tokenizer::token_list &tokens) -> bool;
-} // namespace tokenizer
-} // namespace fdt
+auto parse(std::string_view view, std::string_view root_name) -> std::expected<tokens, error>;
+auto validate(const tokens &) -> bool;
+} // namespace fdt::parser

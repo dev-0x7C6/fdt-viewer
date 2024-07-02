@@ -1,5 +1,5 @@
 #include "main-window.hpp"
-#include "fdt/fdt-parser-v2.hpp"
+#include "fdt/fdt-parser-tokens.hpp"
 #include "fdt/fdt-property-types.hpp"
 #include "ui_main-window.h"
 

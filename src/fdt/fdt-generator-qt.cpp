@@ -1,9 +1,11 @@
 #include "fdt-generator-qt.hpp"
-#include "fdt/fdt-parser-v2.hpp"
+#include "fdt/fdt-parser-tokens.hpp"
 #include "fdt/fdt-property-types.hpp"
 #include <string_view>
 
-qt_tree_fdt_generator::qt_tree_fdt_generator(tree_info &reference, tree_widget *target, string &&name, string &&id) {
+using namespace fdt::qt_wrappers;
+
+tree_generator::tree_generator(tree_info &reference, tree_widget *target, string &&name, string &&id) {
     m_root = [&]() {
         if (reference.root)
             return reference.root;
@@ -21,7 +23,7 @@ qt_tree_fdt_generator::qt_tree_fdt_generator(tree_info &reference, tree_widget *
     m_root->setSelected(true);
 }
 
-void qt_tree_fdt_generator::begin_node(std::string_view vname) noexcept {
+void tree_generator::begin_node(std::string_view vname) noexcept {
     const auto name = QString::fromUtf8(vname.data(), vname.size());
 
     auto child = [&]() {
@@ -51,11 +53,11 @@ void qt_tree_fdt_generator::begin_node(std::string_view vname) noexcept {
     m_tree_stack.emplace(child);
 }
 
-void qt_tree_fdt_generator::end_node() noexcept {
+void tree_generator::end_node() noexcept {
     m_tree_stack.pop();
 }
 
-void qt_tree_fdt_generator::insert_property(const fdt::tokenizer::types::property &prop) noexcept {
+void tree_generator::insert_property(const fdt::parser::token_types::property &prop) noexcept {
     auto item = new QTreeWidgetItem(m_tree_stack.top());
 
     fdt::qt_wrappers::property property{
