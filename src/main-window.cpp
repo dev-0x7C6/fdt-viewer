@@ -1,6 +1,7 @@
 #include "main-window.hpp"
 #include "fdt/fdt-parser-tokens.hpp"
 #include "fdt/fdt-property-types.hpp"
+#include "qabstractitemview.h"
 #include "ui_main-window.h"
 
 #include <QAction>
@@ -72,6 +73,9 @@ MainWindow::MainWindow(QWidget *parent)
             });
 
         update_view();
+
+        if (!m_ui->treeWidget->selectedItems().empty())
+            m_ui->treeWidget->scrollToItem(m_ui->treeWidget->selectedItems().first(), QAbstractItemView::PositionAtCenter);
     });
 
     connect(m_menu.get(), &menu_manager::quit, this, &MainWindow::close);
