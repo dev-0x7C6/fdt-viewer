@@ -2,9 +2,7 @@
 
 #include <types.hpp>
 
-namespace fdt {
-
-namespace raw {
+namespace fdt::decode {
 struct header {
     u32 magic;
     u32 totalsize;
@@ -22,18 +20,17 @@ struct property {
     u32 len;
     u32 nameoff;
 };
-}; // namespace raw
 
-constexpr auto is_magic_invalid(const fdt::raw::header &v) -> bool {
+constexpr auto is_magic_invalid(const header &v) -> bool {
     constexpr auto header_magic_value = 0xD00DFEED;
     return v.magic != header_magic_value;
 }
 
-constexpr auto is_version_unsupported(const fdt::raw::header &v) -> bool {
+constexpr auto is_version_unsupported(const header &v) -> bool {
     constexpr auto header_support_above = 16;
     return v.version <= header_support_above;
 }
-}; // namespace fdt
 
-static_assert(sizeof(fdt::raw::header) == 40);
-static_assert(sizeof(fdt::raw::property) == 8);
+} // namespace fdt::decode
+static_assert(sizeof(fdt::decode::header) == 40);
+static_assert(sizeof(fdt::decode::property) == 8);

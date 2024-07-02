@@ -34,7 +34,7 @@ auto parse(token_types::node_end &&token, context &) -> fdt::parser::token {
 }
 
 auto parse(token_types::property &&token, context &ctx) -> fdt::parser::token {
-    const auto header = read_data_32be<fdt::raw::property>(ctx.state.data);
+    const auto header = read_data_32be<decode::property>(ctx.state.data);
     ctx.state.skip += align(sizeof(header)) + align(header.len);
     ctx.state.data += sizeof(header);
 
@@ -72,18 +72,18 @@ auto foreach_token_type(std::variant<Ts...>, const u32 token_id, fdt::parser::co
 auto fdt::parser::parse(std::string_view view, std::string_view root_name) -> std::expected<fdt::parser::tokens, fdt::parser::error> {
     using error = fdt::parser::error;
 
-    if (view.size() < sizeof(fdt::raw::header))
+    if (view.size() < sizeof(decode::header))
         return std::unexpected(error::invalid_header);
 
-    const auto header = read_data_32be<fdt::raw::header>(view.data());
+    const auto header = read_data_32be<decode::header>(view.data());
 
-    if (fdt::is_magic_invalid(header))
+    if (decode::is_magic_invalid(header))
         return std::unexpected(error::invalid_magic);
 
     if (view.size() < header.totalsize)
         return std::unexpected(error::data_truncated);
 
-    if (fdt::is_version_unsupported(header))
+    if (decode::is_version_unsupported(header))
         return std::unexpected(error::unsupported_version);
 
     const auto dt_struct = view.data() + header.off_dt_struct;
