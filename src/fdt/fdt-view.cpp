@@ -10,9 +10,7 @@
 
 #include "fdt/fdt-parser-v2.hpp"
 #include "qnamespace.h"
-#include <stack>
 #include <string_view>
-#include <vector>
 
 namespace {
 constexpr auto BINARY_PREVIEW_LIMIT = 256;
@@ -99,22 +97,24 @@ struct overloaded : Ts... {
     using Ts::operator()...;
 };
 
-bool fdt::viewer::load(const byte_array &datamap, string &&name, string &&id) {
+bool fdt::viewer::load(QByteArray &&data, string &&name, string &&id) {
     qt_tree_fdt_generator generator(m_tree[id], m_target, std::move(name), std::move(id));
 
-    fdt::tokenizer::token_list tokens;
-    fdt_parser parser({datamap.data(), datamap.size()}, tokens, {});
+    const auto tokens = fdt::tokenizer::generator({data.data(), data.size()}, name.toStdString());
 
-    if (!parser.is_valid())
+    if (!tokens)
+        return false;
+
+    if (!fdt::tokenizer::validate(tokens.value()))
         return false;
 
     using namespace fdt::tokenizer;
 
-    for (auto &&token : tokens)
+    for (auto &&token : tokens.value())
         std::visit(overloaded{
-                       [&](types::node_begin &arg) { generator.begin_node(QString::fromUtf8(arg.name.data(), arg.name.size())); },
-                       [&](types::node_end &arg) { generator.end_node(); },
-                       [&](types::property &arg) {
+                       [&](const types::node_begin &arg) { generator.begin_node(QString::fromUtf8(arg.name.data(), arg.name.size())); },
+                       [&](const types::node_end &arg) { generator.end_node(); },
+                       [&](const types::property &arg) {
                            auto property = fdt_property{
                                .name = QString::fromUtf8(arg.name.data(), arg.name.size()),
                                .data = arg.data,
@@ -122,13 +122,12 @@ bool fdt::viewer::load(const byte_array &datamap, string &&name, string &&id) {
 
                            generator.insert_property(property);
                        },
-                       [&](types::nop &) {},
-                       [&](types::end &) {},
+                       [&](const types::nop &) {},
+                       [&](const types::end &) {},
                    },
             token);
 
-    generator.root()->setData(0, Qt::UserRole + 1000, datamap);
-
+    generator.root()->setData(0, Qt::UserRole + 1000, std::move(data));
     return true;
 }
 
@@ -136,9 +135,9 @@ void fdt::viewer::drop(string &&id) {
     m_tree.remove(id);
 }
 
-bool fdt::fdt_content_filter(tree_widget_item *node, const std::function<bool(const string &)> &match) {
-    QList<tree_widget_item *> nodes;
-    QList<tree_widget_item *> properties;
+bool fdt::fdt_content_filter(QTreeWidgetItem *node, const std::function<bool(const string &)> &match) {
+    QList<QTreeWidgetItem *> nodes;
+    QList<QTreeWidgetItem *> properties;
 
     for (auto i = 0; i < node->childCount(); ++i) {
         const auto child = node->child(i);
@@ -173,12 +172,12 @@ bool fdt::fdt_content_filter(tree_widget_item *node, const std::function<bool(co
     return isFound;
 }
 
-bool fdt::fdt_view_dts(tree_widget_item *item, string &ret, int depth) {
+bool fdt::fdt_view_dts(QTreeWidgetItem *item, string &ret, int depth) {
     string depth_str;
     depth_str.fill(' ', depth * 4);
 
-    QList<tree_widget_item *> nodes;
-    QList<tree_widget_item *> properties;
+    QList<QTreeWidgetItem *> nodes;
+    QList<QTreeWidgetItem *> properties;
 
     for (auto i = 0; i < item->childCount(); ++i) {
         const auto child = item->child(i);

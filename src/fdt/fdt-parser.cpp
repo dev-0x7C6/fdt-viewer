@@ -1,35 +1,18 @@
 #include "fdt-parser.hpp"
 #include "fdt/fdt-header.hpp"
 #include "fdt-parser-v2.hpp"
+#include "endian-conversions.hpp"
 
 #include <algorithm>
+#include <cstdint>
 #include <cstring>
+#include <expected>
 #include <iostream>
-#include <mutex>
-#include <ostream>
 #include <string_view>
 #include <variant>
 
-#include <endian-conversions.hpp>
+#include <iostream>
 
-fdt_parser::fdt_parser(std::string_view view, fdt::tokenizer::token_list &tokens, const std::string &default_root_node)
-        : view(view)
-        , default_root_node_name(default_root_node) {
-    if (view.size() >= sizeof(fdt::header)) {
-        auto header = read_data_32be<fdt::header>(view.data());
-        if (FDT_MAGIC_VALUE != header.magic)
-            return;
-
-        if (view.size() < header.totalsize)
-            return;
-
-        if (FDT_SUPPORT_ABOVE > header.version)
-            return;
-
-        m_header = std::move(header);
-        parse(m_header.value(), tokens);
-    }
-}
 auto align(const std::size_t size) {
     const auto q = size % sizeof(u32);
     const auto w = size / sizeof(u32);
@@ -88,14 +71,26 @@ auto foreach_token_type(std::variant<Ts...>, const u32 token_id, fdt::tokenizer:
     return (conditional_parse(Ts{}) || ...);
 }
 
-void fdt_parser::parse(const fdt::header header, fdt::tokenizer::token_list &tokens) {
+auto fdt::tokenizer::generator(std::string_view view, std::string_view root_name) -> std::expected<fdt::tokenizer::token_list, error> {
+    if (view.size() < sizeof(fdt::header))
+        return std::unexpected(fdt::error::bad_header);
+
+    const auto header = read_data_32be<fdt::header>(view.data());
+
+    if (fdt::header_magic_value != header.magic)
+        return std::unexpected(fdt::error::bad_magic);
+
+    if (view.size() < header.totalsize)
+        return std::unexpected(fdt::error::data_truncated);
+
+    if (fdt::header_support_above > header.version)
+        return std::unexpected(fdt::error::not_supported_version);
+
     const auto dt_struct = view.data() + header.off_dt_struct;
     const auto dt_strings = view.data() + header.off_dt_strings;
 
-    auto get_property_name = [&](auto offset) {
-        const auto ptr = dt_strings + offset;
-        return QString::fromUtf8(ptr, std::strlen(ptr));
-    };
+    fdt::tokenizer::token_list tokens;
+    tokens.reserve(50000);
 
     using namespace fdt::tokenizer;
     using namespace fdt::tokenizer::types;
@@ -109,59 +104,83 @@ void fdt_parser::parse(const fdt::header header, fdt::tokenizer::token_list &tok
     const auto begin = reinterpret_cast<const u32 *>(dt_struct);
     const auto end = reinterpret_cast<const u32 *>(dt_struct) + header.size_dt_struct / sizeof(u32);
 
-    const auto is_aligned = (header.size_dt_struct % sizeof(u32)) == 0;
-
-    std::once_flag root_node_rename;
+    if (header.size_dt_struct % sizeof(u32) != 0)
+        return std::unexpected(fdt::error::data_unaligned);
 
     for (auto iter = begin; iter != end;) {
         const auto id = static_cast<u32>(convert(*iter));
         ctx.state.data = reinterpret_cast<const char *>(++iter);
         ctx.state.skip = 0;
 
-        if (!foreach_token_type(token{}, id, ctx)) {
-            std::cout << id << std::endl;
-        }
-
-        if (!ctx.tokens.empty() && std::holds_alternative<types::node_begin>(tokens.back())) {
-            std::call_once(root_node_rename, [&]() {
-                auto &x = std::get<types::node_begin>(tokens.back());
-                x.name = default_root_node_name;
-            });
-        }
+        if (!foreach_token_type(token{}, id, ctx))
+            return std::unexpected(fdt::error::bad_token);
 
         iter += ctx.state.skip;
 
-        if (!ctx.tokens.empty() && std::holds_alternative<types::property>(tokens.back())) {
-            auto &x = std::get<types::property>(tokens.back());
-            if (x.name == "data")
-                fdt_parser parser(x.data, tokens, "data");
+        if (std::holds_alternative<types::property>(tokens.back())) {
+            auto &prop = std::get<types::property>(tokens.back());
+
+            if (auto dtb = fdt::tokenizer::generator(prop.data, prop.name); dtb.has_value()) {
+                auto &embedded_tokens = dtb.value();
+                std::move(std::begin(embedded_tokens), std::end(embedded_tokens), std::back_inserter(tokens));
+            }
         }
     }
 
-    const auto node_begin_count = std::ranges::count_if(ctx.tokens, [](auto &&v) {
-        return std::holds_alternative<node_begin>(v);
-    });
+    // change property name for first node
+    for (auto &&token : tokens)
+        if (std::holds_alternative<types::node_begin>(token)) {
+            std::get<types::node_begin>(token).name = root_name;
+            break;
+        }
 
-    const auto node_end_count = std::ranges::count_if(ctx.tokens, [](auto &&v) {
-        return std::holds_alternative<node_end>(v);
-    });
+    return tokens;
+}
 
-    const auto property_count = std::ranges::count_if(ctx.tokens, [](auto &&v) {
-        return std::holds_alternative<property>(v);
-    });
+template <class... Ts>
+struct overloaded : Ts... {
+    using Ts::operator()...;
+};
 
-    const auto nop_count = std::ranges::count_if(ctx.tokens, [](auto &&v) {
-        return std::holds_alternative<nop>(v);
-    });
+auto fdt::tokenizer::validate(const fdt::tokenizer::token_list &tokens) -> bool {
+    using namespace fdt::tokenizer;
 
-    const auto end_count = std::ranges::count_if(ctx.tokens, [](auto &&v) {
-        return std::holds_alternative<types::end>(v);
-    });
+    bool valid_depth_test{true};
+    std::int32_t node_scope_depth{};
+    std::int32_t node_begin_count{};
+    std::int32_t node_end_count{};
+    std::int32_t property_count{};
+    std::int32_t nop_count{};
+    std::int32_t end_count{};
 
-    std::cout << "is_aligned : " << is_aligned << std::endl;
-    std::cout << "node begin : " << node_begin_count << std::endl;
-    std::cout << "node end   : " << node_end_count << std::endl;
-    std::cout << "property   : " << property_count << std::endl;
-    std::cout << "nop        : " << nop_count << std::endl;
-    std::cout << "end        : " << end_count << std::endl;
+    for (auto &&token : tokens) {
+        std::visit(overloaded{
+                       [&](const types::node_begin &arg) {
+                           node_begin_count++;
+                           node_scope_depth++;
+                       },
+                       [&](const types::node_end &arg) {
+                           node_end_count++;
+                           node_scope_depth--;
+                       },
+                       [&](const types::property &arg) {
+                           property_count++;
+                       },
+                       [&](const types::nop &) { nop_count++; },
+                       [&](const types::end &) { end_count++; },
+                   },
+            token);
+
+        // check that we never go below 0
+        valid_depth_test &= (node_scope_depth >= 0);
+    }
+
+    std::cout << "node depth validation: " << valid_depth_test << std::endl;
+    std::cout << "node begin: " << node_begin_count << std::endl;
+    std::cout << "node end  : " << node_end_count << std::endl;
+    std::cout << "property  : " << property_count << std::endl;
+    std::cout << "nop       : " << nop_count << std::endl;
+    std::cout << "end       : " << end_count << std::endl;
+
+    return valid_depth_test && node_begin_count == node_end_count;
 }

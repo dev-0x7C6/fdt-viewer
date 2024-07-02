@@ -5,7 +5,7 @@ qt_tree_fdt_generator::qt_tree_fdt_generator(tree_info &reference, tree_widget *
         if (reference.root)
             return reference.root;
 
-        auto ret = new tree_widget_item(target);
+        auto ret = new QTreeWidgetItem(target);
         reference.root = ret;
         return ret;
     }();
@@ -23,8 +23,8 @@ void qt_tree_fdt_generator::begin_node(const QString &name) noexcept {
         if (m_tree_stack.empty())
             return m_root;
 
-        tree_widget_item *item = nullptr;
-        tree_widget_item *root = m_tree_stack.top();
+        QTreeWidgetItem *item = nullptr;
+        QTreeWidgetItem *root = m_tree_stack.top();
 
         for (auto i = 0; i < root->childCount(); ++i)
             if (root->child(i)->text(0) == name) {
@@ -34,7 +34,7 @@ void qt_tree_fdt_generator::begin_node(const QString &name) noexcept {
                 return root->child(i);
             }
 
-        return new tree_widget_item(root);
+        return new QTreeWidgetItem(root);
     }();
 
     if (child->text(0).isEmpty()) {
@@ -51,7 +51,7 @@ void qt_tree_fdt_generator::end_node() noexcept {
 }
 
 void qt_tree_fdt_generator::insert_property(const fdt_property &property) noexcept {
-    auto item = new tree_widget_item(m_tree_stack.top());
+    auto item = new QTreeWidgetItem(m_tree_stack.top());
 
     item->setText(0, property.name);
     item->setIcon(0, QIcon::fromTheme("flag-green"));

@@ -26,11 +26,11 @@ Q_DECLARE_METATYPE(NodeType)
 template <typename... types>
 using hash_map = QHash<types...>;
 
-using node_map = hash_map<string, tree_widget_item *>;
+using node_map = hash_map<string, QTreeWidgetItem *>;
 
 struct tree_info {
     string id;
-    tree_widget_item *root{nullptr};
+    QTreeWidgetItem *root{nullptr};
     node_map nodes;
 };
 
@@ -46,6 +46,6 @@ struct qt_tree_fdt_generator : public iface_fdt_generator {
     auto root() { return m_root; }
 
 private:
-    tree_widget_item *m_root{nullptr};
-    std::stack<tree_widget_item *> m_tree_stack;
+    QTreeWidgetItem *m_root{nullptr};
+    std::stack<QTreeWidgetItem *> m_tree_stack;
 };

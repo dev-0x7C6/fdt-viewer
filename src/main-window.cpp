@@ -50,7 +50,6 @@ MainWindow::MainWindow(QWidget *parent)
     });
 
     connect(m_menu.get(), &menu_manager::show_about_qt, []() { QApplication::aboutQt(); });
-
     connect(m_menu.get(), &menu_manager::open_file, this, [this]() {
         fdt::open_file_dialog(this, [this](auto &&...values) { open_file(std::forward<decltype(values)>(values)...); });
     });
@@ -83,7 +82,6 @@ MainWindow::MainWindow(QWidget *parent)
     });
 
     connect(m_menu.get(), &menu_manager::property_export, this, &MainWindow::property_export);
-
     connect(m_menu.get(), &menu_manager::close_all, this, [this]() {
         m_fdt = nullptr;
         m_ui->treeWidget->clear();

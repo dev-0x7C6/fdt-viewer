@@ -37,5 +37,5 @@ using file_info = QFileInfo;
 using string = QString;
 using string_list = QStringList;
 using tree_widget = QTreeWidget;
-using tree_widget_item = QTreeWidgetItem;
+using QTreeWidgetItem = QTreeWidgetItem;
 using widget = QWidget;

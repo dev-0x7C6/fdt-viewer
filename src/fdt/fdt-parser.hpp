@@ -1,28 +1,26 @@
 #pragma once
 
-#include <fdt/fdt-header.hpp>
-
+#include "fdt/fdt-header.hpp"
 #include "fdt/fdt-parser-v2.hpp"
-#include <functional>
+
 #include <optional>
 #include <string>
 #include <string_view>
-#include <vector>
+#include <expected>
 
-#include <fdt/fdt-generator.hpp>
+namespace fdt {
 
-class fdt_parser {
-public:
-    fdt_parser(std::string_view view, fdt::tokenizer::token_list &tokens,
-        const std::string &default_root_node);
-    constexpr bool is_valid() noexcept { return m_header.has_value(); }
-
-private:
-    void parse(const fdt::header header, fdt::tokenizer::token_list &tokens);
-
-private:
-    std::optional<fdt::header> m_header;
-    const std::string default_root_node_name;
-
-    const std::string_view view;
+enum class error {
+    bad_header,
+    bad_magic,
+    data_truncated,
+    data_unaligned,
+    not_supported_version,
+    bad_token,
 };
+
+namespace tokenizer {
+auto generator(std::string_view view, std::string_view root_name) -> std::expected<fdt::tokenizer::token_list, error>;
+auto validate(const fdt::tokenizer::token_list &tokens) -> bool;
+} // namespace tokenizer
+} // namespace fdt

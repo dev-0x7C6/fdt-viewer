@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.26)
+cmake_minimum_required(VERSION 3.29)
 
 project(fdt-viewer VERSION 0.8.1 LANGUAGES CXX)
 
@@ -10,6 +10,8 @@ set(CMAKE_AUTORCC ON)
 
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+add_compile_definitions("-D__cpp_concepts=202002L")
 
 find_package(Qt6 COMPONENTS Widgets Core)
 if (Qt6_FOUND)

@@ -40,7 +40,7 @@ private:
     QHexView *m_hexview{nullptr};
     std::unique_ptr<Ui::MainWindow> m_ui;
     std::unique_ptr<menu_manager> m_menu;
-    tree_widget_item *m_fdt{nullptr};
+    QTreeWidgetItem *m_fdt{nullptr};
     std::unique_ptr<fdt::viewer> m_viewer;
 };
 

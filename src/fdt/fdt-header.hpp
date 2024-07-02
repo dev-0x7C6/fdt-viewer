@@ -2,30 +2,10 @@
 
 #include <types.hpp>
 
-constexpr auto FDT_MAGIC_VALUE = 0xD00DFEED;
-constexpr auto FDT_SUPPORT_ABOVE = 16;
-
 namespace fdt {
 
-enum class token : u32 {
-    begin_node = 0x01,
-    end_node = 0x02,
-    property = 0x03,
-    nop = 0x04,
-    end = 0x09,
-};
-
-constexpr auto name(const token value) noexcept -> const char * {
-    switch (value) {
-        case token::begin_node: return "begin_node";
-        case token::end_node: return "end_node";
-        case token::property: return "property";
-        case token::nop: return "nop";
-        case token::end: return "end";
-    }
-
-    return nullptr;
-}
+constexpr auto header_magic_value = 0xD00DFEED;
+constexpr auto header_support_above = 16;
 
 struct header {
     u32 magic;
