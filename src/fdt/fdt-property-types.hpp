@@ -20,6 +20,13 @@ enum class word_size {
     custom,
 };
 
+namespace fdt::qt_wrappers {
+struct property {
+    QString name;
+    QByteArray data;
+};
+} // namespace fdt::qt_wrappers
+
 struct property_info {
     property_type type{property_type::guess};
     word_size word{word_size::_8};

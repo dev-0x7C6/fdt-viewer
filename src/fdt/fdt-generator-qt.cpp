@@ -1,4 +1,7 @@
 #include "fdt-generator-qt.hpp"
+#include "fdt/fdt-parser-v2.hpp"
+#include "fdt/fdt-property-types.hpp"
+#include <string_view>
 
 qt_tree_fdt_generator::qt_tree_fdt_generator(tree_info &reference, tree_widget *target, string &&name, string &&id) {
     m_root = [&]() {
@@ -18,7 +21,9 @@ qt_tree_fdt_generator::qt_tree_fdt_generator(tree_info &reference, tree_widget *
     m_root->setSelected(true);
 }
 
-void qt_tree_fdt_generator::begin_node(const QString &name) noexcept {
+void qt_tree_fdt_generator::begin_node(std::string_view vname) noexcept {
+    const auto name = QString::fromUtf8(vname.data(), vname.size());
+
     auto child = [&]() {
         if (m_tree_stack.empty())
             return m_root;
@@ -50,11 +55,16 @@ void qt_tree_fdt_generator::end_node() noexcept {
     m_tree_stack.pop();
 }
 
-void qt_tree_fdt_generator::insert_property(const fdt_property &property) noexcept {
+void qt_tree_fdt_generator::insert_property(const fdt::tokenizer::types::property &prop) noexcept {
     auto item = new QTreeWidgetItem(m_tree_stack.top());
 
-    item->setText(0, property.name);
+    fdt::qt_wrappers::property property{
+        .name = QString::fromUtf8(prop.name.data(), prop.name.size()),
+        .data = QByteArray::fromRawData(prop.data.data(), prop.data.size()),
+    };
+
+    item->setText(0, QString::fromUtf8(prop.name.data(), prop.name.size()));
     item->setIcon(0, QIcon::fromTheme("flag-green"));
     item->setData(0, QT_ROLE_NODETYPE, QVariant::fromValue(NodeType::Property));
-    item->setData(0, QT_ROLE_PROPERTY, QVariant::fromValue(property));
+    item->setData(0, QT_ROLE_PROPERTY, QVariant::fromValue(std::move(property)));
 }

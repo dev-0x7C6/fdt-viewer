@@ -9,6 +9,7 @@
 #include <QFileInfo>
 
 #include "fdt/fdt-parser-v2.hpp"
+#include "fdt/fdt-property-types.hpp"
 #include "qnamespace.h"
 #include <string_view>
 
@@ -31,15 +32,15 @@ string present_u32be(const QByteArray &data) {
     return ret;
 }
 
-string present(const fdt_property &property) {
-    auto &&name = property.name;
-    auto &&data = property.data;
+QString present(const fdt::qt_wrappers::property &p) {
+    auto &&name = p.name;
+    auto &&data = p.data;
 
-    auto result = [&](string &&value) {
+    auto result = [&](QString &&value) {
         return name + " = <" + value + ">;";
     };
 
-    auto result_str = [&](string &&value) {
+    auto result_str = [&](QString &&value) {
         return name + " = \"" + value + "\";";
     };
 
@@ -59,7 +60,7 @@ string present(const fdt_property &property) {
         return result(string::number(convert(*reinterpret_cast<const u32 *>(data.data()))));
 
     if (names_regexp.match(name).hasMatch()) {
-        auto lines = QByteArray::fromRawData(data.data(), data.size()).split(0);
+        auto lines = data.split(0);
         lines.removeLast();
 
         string ret;
@@ -74,9 +75,9 @@ string present(const fdt_property &property) {
     }
 
     if (std::count_if(data.begin(), data.end(), [](auto &&value) { return value == 0x00; }) == 1 &&
-        data.at(data.size() - 1) == 0x00) return result_str(QString{property.data.data()});
+        data.back() == 0x00) return result_str(data.data());
 
-    return result(present_u32be(QByteArray::fromRawData(data.data(), data.size())));
+    return result(present_u32be(data));
 }
 } // namespace
 
@@ -112,16 +113,9 @@ bool fdt::viewer::load(QByteArray &&data, string &&name, string &&id) {
 
     for (auto &&token : tokens.value())
         std::visit(overloaded{
-                       [&](const types::node_begin &arg) { generator.begin_node(QString::fromUtf8(arg.name.data(), arg.name.size())); },
-                       [&](const types::node_end &arg) { generator.end_node(); },
-                       [&](const types::property &arg) {
-                           auto property = fdt_property{
-                               .name = QString::fromUtf8(arg.name.data(), arg.name.size()),
-                               .data = arg.data,
-                           };
-
-                           generator.insert_property(property);
-                       },
+                       [&](const types::node_begin &arg) { generator.begin_node(arg.name); },
+                       [&](const types::node_end &) { generator.end_node(); },
+                       [&](const types::property &arg) { generator.insert_property(arg); },
                        [&](const types::nop &) {},
                        [&](const types::end &) {},
                    },
@@ -159,7 +153,7 @@ bool fdt::fdt_content_filter(QTreeWidgetItem *node, const std::function<bool(con
         if (isFound)
             break;
 
-        const auto property = item->data(0, QT_ROLE_PROPERTY).value<fdt_property>();
+        const auto property = item->data(0, QT_ROLE_PROPERTY).value<fdt::qt_wrappers::property>();
         isFound |= match(property.name) || match(present(property));
     }
 
@@ -197,7 +191,7 @@ bool fdt::fdt_view_dts(QTreeWidgetItem *item, string &ret, int depth) {
     ret += depth_str + item->data(0, Qt::DisplayRole).toString() + " {\n";
 
     for (auto item : properties) {
-        const auto property = item->data(0, QT_ROLE_PROPERTY).value<fdt_property>();
+        const auto property = item->data(0, QT_ROLE_PROPERTY).value<fdt::qt_wrappers::property>();
         ret += depth_str + "    " + present(property) + "\n";
     }
 

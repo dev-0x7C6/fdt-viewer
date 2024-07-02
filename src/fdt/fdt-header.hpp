@@ -4,9 +4,6 @@
 
 namespace fdt {
 
-constexpr auto header_magic_value = 0xD00DFEED;
-constexpr auto header_support_above = 16;
-
 struct header {
     u32 magic;
     u32 totalsize;
@@ -24,6 +21,16 @@ struct property {
     u32 len;
     u32 nameoff;
 };
+
+constexpr auto is_magic_invalid(const header &v) -> bool {
+    constexpr auto header_magic_value = 0xD00DFEED;
+    return v.magic != header_magic_value;
+}
+
+constexpr auto is_version_unsupported(const header &v) -> bool {
+    constexpr auto header_support_above = 16;
+    return v.version <= header_support_above;
+}
 
 static_assert(sizeof(header) == 40);
 static_assert(sizeof(property) == 8);

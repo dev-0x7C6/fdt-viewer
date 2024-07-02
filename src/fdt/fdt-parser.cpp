@@ -73,18 +73,18 @@ auto foreach_token_type(std::variant<Ts...>, const u32 token_id, fdt::tokenizer:
 
 auto fdt::tokenizer::generator(std::string_view view, std::string_view root_name) -> std::expected<fdt::tokenizer::token_list, error> {
     if (view.size() < sizeof(fdt::header))
-        return std::unexpected(fdt::error::bad_header);
+        return std::unexpected(fdt::error::invalid_header);
 
     const auto header = read_data_32be<fdt::header>(view.data());
 
-    if (fdt::header_magic_value != header.magic)
-        return std::unexpected(fdt::error::bad_magic);
+    if (fdt::is_magic_invalid(header))
+        return std::unexpected(fdt::error::invalid_magic);
 
     if (view.size() < header.totalsize)
         return std::unexpected(fdt::error::data_truncated);
 
-    if (fdt::header_support_above > header.version)
-        return std::unexpected(fdt::error::not_supported_version);
+    if (fdt::is_version_unsupported(header))
+        return std::unexpected(fdt::error::unsupported_version);
 
     const auto dt_struct = view.data() + header.off_dt_struct;
     const auto dt_strings = view.data() + header.off_dt_strings;
@@ -113,7 +113,7 @@ auto fdt::tokenizer::generator(std::string_view view, std::string_view root_name
         ctx.state.skip = 0;
 
         if (!foreach_token_type(token{}, id, ctx))
-            return std::unexpected(fdt::error::bad_token);
+            return std::unexpected(fdt::error::invalid_token);
 
         iter += ctx.state.skip;
 

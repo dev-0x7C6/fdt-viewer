@@ -1,4 +1,6 @@
 #include "main-window.hpp"
+#include "fdt/fdt-parser-v2.hpp"
+#include "fdt/fdt-property-types.hpp"
 #include "ui_main-window.h"
 
 #include <QAction>
@@ -157,7 +159,7 @@ void MainWindow::update_fdt_path(QTreeWidgetItem *item) {
     m_ui->path->setText("fdt://" + path);
 }
 
-constexpr auto VIEW_TEXT_CACHE_SIZE = 1024 * 1024;
+constexpr auto VIEW_TEXT_CACHE_SIZE = 1024 * 1024 * 32;
 
 void MainWindow::update_view() {
     m_ui->splitter->setEnabled(m_ui->treeWidget->topLevelItemCount());
@@ -178,8 +180,8 @@ void MainWindow::update_view() {
     m_ui->preview->setCurrentWidget(NodeType::Node == type ? m_ui->text_view_page : m_ui->property_view_page);
 
     if (NodeType::Property == type) {
-        const auto property = item->data(0, QT_ROLE_PROPERTY).value<fdt_property>();
-        m_hexview->setDocument(QHexDocument::fromMemory<QMemoryBuffer>(QByteArray::fromRawData(property.data.data(), property.data.size())));
+        const auto property = item->data(0, QT_ROLE_PROPERTY).value<fdt::qt_wrappers::property>();
+        m_hexview->setDocument(QHexDocument::fromMemory<QMemoryBuffer>(property.data));
     }
 
     m_ui->text_view->clear();
@@ -200,8 +202,9 @@ void MainWindow::property_export() {
     const auto type = item->data(0, QT_ROLE_NODETYPE).value<NodeType>();
 
     if (NodeType::Property == type) {
-        const auto property = item->data(0, QT_ROLE_PROPERTY).value<fdt_property>();
-        m_hexview->setDocument(QHexDocument::fromMemory<QMemoryBuffer>(QByteArray::fromRawData(property.data.data(), property.data.size())));
-        fdt::export_property_file_dialog(this, QByteArray::fromRawData(property.data.data(), property.data.size()), property.name);
+        const auto property = item->data(0, QT_ROLE_PROPERTY).value<fdt::qt_wrappers::property>();
+
+        m_hexview->setDocument(QHexDocument::fromMemory<QMemoryBuffer>(property.data));
+        fdt::export_property_file_dialog(this, property.data, property.name);
     }
 }

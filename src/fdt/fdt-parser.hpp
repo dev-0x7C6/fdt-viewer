@@ -1,22 +1,19 @@
 #pragma once
 
-#include "fdt/fdt-header.hpp"
 #include "fdt/fdt-parser-v2.hpp"
 
-#include <optional>
-#include <string>
 #include <string_view>
 #include <expected>
 
 namespace fdt {
 
 enum class error {
-    bad_header,
-    bad_magic,
+    invalid_header,
+    invalid_magic,
+    invalid_token,
     data_truncated,
     data_unaligned,
-    not_supported_version,
-    bad_token,
+    unsupported_version,
 };
 
 namespace tokenizer {
