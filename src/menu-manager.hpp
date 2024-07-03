@@ -3,10 +3,13 @@
 #include <types.hpp>
 #include <QObject>
 
+class QAction;
+class QMenuBar;
+
 class menu_manager : public QObject {
     Q_OBJECT
 public:
-    menu_manager(menu_bar *menubar);
+    menu_manager(QMenuBar *menubar);
 
 public:
     void set_close_enabled(bool value);
@@ -28,6 +31,6 @@ signals:
     void show_normal();
 
 private:
-    action *m_close_action{nullptr};
-    action *m_close_all_action{nullptr};
+    QAction *m_close_action{nullptr};
+    QAction *m_close_all_action{nullptr};
 };

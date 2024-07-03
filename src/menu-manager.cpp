@@ -5,7 +5,7 @@
 
 #include <viewer-settings.hpp>
 
-menu_manager::menu_manager(menu_bar *menubar)
+menu_manager::menu_manager(QMenuBar *menubar)
         : QObject(nullptr) {
     auto file_menu = menubar->addMenu(tr("&File"));
     auto view_menu = menubar->addMenu(tr("&View"));
@@ -57,15 +57,15 @@ menu_manager::menu_manager(menu_bar *menubar)
         settings.view_word_wrap.set(value);
     });
 
-    connect(file_menu_quit, &action::triggered, this, &menu_manager::quit);
-    connect(view_menu_word_wrap, &action::triggered, this, &menu_manager::use_word_wrap);
-    connect(file_menu_close, &action::triggered, this, &menu_manager::close);
-    connect(file_menu_close_all, &action::triggered, this, &menu_manager::close_all);
-    connect(help_menu_about_qt, &action::triggered, this, &menu_manager::show_about_qt);
-    connect(file_menu_open, &action::triggered, this, &menu_manager::open_file);
-    connect(file_menu_open_dir, &action::triggered, this, &menu_manager::open_directory);
-    connect(property_export, &action::triggered, this, &menu_manager::property_export);
-    connect(window_menu_full_screen, &action::triggered, [this](bool value) {
+    connect(file_menu_quit, &QAction::triggered, this, &menu_manager::quit);
+    connect(view_menu_word_wrap, &QAction::triggered, this, &menu_manager::use_word_wrap);
+    connect(file_menu_close, &QAction::triggered, this, &menu_manager::close);
+    connect(file_menu_close_all, &QAction::triggered, this, &menu_manager::close_all);
+    connect(help_menu_about_qt, &QAction::triggered, this, &menu_manager::show_about_qt);
+    connect(file_menu_open, &QAction::triggered, this, &menu_manager::open_file);
+    connect(file_menu_open_dir, &QAction::triggered, this, &menu_manager::open_directory);
+    connect(property_export, &QAction::triggered, this, &menu_manager::property_export);
+    connect(window_menu_full_screen, &QAction::triggered, [this](bool value) {
         viewer_settings settings;
         settings.window_show_fullscreen.set(value);
         if (value)

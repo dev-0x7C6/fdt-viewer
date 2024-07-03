@@ -11,7 +11,7 @@ using settings = QSettings;
 template <typename type>
 class settings_property {
 public:
-    settings_property(const string &name, type &&value = {})
+    settings_property(const QString &name, type &&value = {})
             : m_name(name) {
         if (!m_settings.contains(name))
             set(std::forward<type>(value));
@@ -27,7 +27,7 @@ public:
 
 private:
     settings m_settings;
-    const string m_name;
+    const QString m_name;
 };
 
 class viewer_settings {

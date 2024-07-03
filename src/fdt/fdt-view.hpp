@@ -2,25 +2,29 @@
 
 #include <fdt/fdt-generator-qt.hpp>
 
+class QString;
+class QByteArray;
+class QFileInfo;
+
 namespace fdt {
 
 class viewer {
 public:
-    viewer(tree_widget *target);
+    viewer(QTreeWidget *target);
 
-    auto is_loaded(string &&id) const noexcept -> bool;
-    auto is_loaded(const string &id) const noexcept -> bool;
+    auto is_loaded(QString &&id) const noexcept -> bool;
+    auto is_loaded(const QString &id) const noexcept -> bool;
 
-    auto load(QByteArray &&data, string &&name, string &&id) -> bool;
-    auto drop(string &&id) -> void;
+    auto load(QByteArray &&data, QString &&name, QString &&id) -> bool;
+    auto drop(QString &&id) -> void;
 
 private:
     tree_map m_tree;
-    tree_widget *m_target;
+    QTreeWidget *m_target;
 };
 
-bool fdt_view_prepare(tree_widget *target, const byte_array &datamap, const file_info &info);
-bool fdt_view_dts(QTreeWidgetItem *item, string &ret, int depth = 0);
-bool fdt_content_filter(QTreeWidgetItem *item, const std::function<bool(const string &)> &match);
+bool fdt_view_prepare(QTreeWidget *target, const QByteArray &datamap, const QFileInfo &info);
+bool fdt_view_dts(QTreeWidgetItem *item, QString &ret, int depth = 0);
+bool fdt_content_filter(QTreeWidgetItem *item, const std::function<bool(const QString &)> &match);
 
 } // namespace fdt

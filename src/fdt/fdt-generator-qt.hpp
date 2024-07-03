@@ -1,15 +1,14 @@
 #pragma once
 
-#include <fdt/fdt-header.hpp>
-#include <fdt/fdt-property-types.hpp>
-#include <types.hpp>
+#include "fdt/fdt-property-types.hpp"
+#include "fdt/fdt-parser-tokens.hpp"
+
+#include <stack>
+#include <string_view>
 
 #include <QMetaType>
 #include <QTreeWidgetItem>
 #include <QHash>
-#include "fdt/fdt-parser-tokens.hpp"
-#include <stack>
-#include <string_view>
 
 Q_DECLARE_METATYPE(fdt::qt_wrappers::property)
 
@@ -27,20 +26,20 @@ Q_DECLARE_METATYPE(NodeType)
 template <typename... types>
 using hash_map = QHash<types...>;
 
-using node_map = hash_map<string, QTreeWidgetItem *>;
+using node_map = hash_map<QString, QTreeWidgetItem *>;
 
 struct tree_info {
-    string id;
+    QString id;
     QTreeWidgetItem *root{nullptr};
     node_map nodes;
 };
 
-using tree_map = hash_map<string, tree_info>;
+using tree_map = hash_map<QString, tree_info>;
 
 namespace fdt::qt_wrappers {
 
 struct tree_generator {
-    tree_generator(tree_info &reference, tree_widget *target, string &&name, string &&id);
+    tree_generator(tree_info &reference, QTreeWidget *target, QString &&name, QString &&id);
 
     void begin_node(std::string_view) noexcept;
     void end_node() noexcept;

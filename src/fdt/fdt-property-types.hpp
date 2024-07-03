@@ -1,5 +1,6 @@
 #pragma once
 
+#include <memory>
 #include <types.hpp>
 #include <QHash>
 
@@ -31,7 +32,7 @@ struct property_info {
     word_size word{word_size::_8};
 };
 
-const static QHash<string, property_info> property_map = {
+const static QHash<QString, property_info> property_map = {
     {"compatible", {property_type::string, word_size::custom}},
     {"phandle", {property_type::number, word_size::_32}},
     {"pinctrl-names", {property_type::multiline, word_size::custom}},

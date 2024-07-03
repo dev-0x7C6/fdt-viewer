@@ -26,10 +26,10 @@ public:
     void open_file_dialog();
     void open_directory_dialog();
 
-    void open_directory(const string &path);
-    void open_file(const string &path);
+    void open_directory(const QString &path);
+    void open_file(const QString &path);
 
-    bool open(const string &path);
+    bool open(const QString &path);
 
 private:
     void update_fdt_path(QTreeWidgetItem *item = nullptr);

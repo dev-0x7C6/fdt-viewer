@@ -14,10 +14,10 @@
 #include <string_view>
 
 namespace {
-constexpr auto BINARY_PREVIEW_LIMIT = 256;
+constexpr auto BINARY_PREVIEW_LIMIT = 64;
 
-string present_u32be(const QByteArray &data) {
-    string ret;
+QString present_u32be(const QByteArray &data) {
+    QString ret;
 
     auto array = reinterpret_cast<u8 *>(const_cast<char *>(data.data()));
     for (auto i = 0; i < data.size(); ++i) {
@@ -33,8 +33,8 @@ string present_u32be(const QByteArray &data) {
 }
 
 QString present(const fdt::qt_wrappers::property &p) {
-    auto &&name = p.name;
-    auto &&data = p.data;
+    auto &name = p.name;
+    auto &data = p.data;
 
     auto result = [&](QString &&value) {
         return name + " = <" + value + ">;";
@@ -50,20 +50,20 @@ QString present(const fdt::qt_wrappers::property &p) {
             return result_str(QString(data.data()));
 
         if (property_type::number == info.type)
-            return result(string::number(convert(*reinterpret_cast<const u32 *>(data.data()))));
+            return result(QString::number(convert(*reinterpret_cast<const u32 *>(data.data()))));
     }
 
     const static QRegularExpression cells_regexp("^#.*-cells$");
     const static QRegularExpression names_regexp("^.*-names");
 
     if (cells_regexp.match(name).hasMatch())
-        return result(string::number(convert(*reinterpret_cast<const u32 *>(data.data()))));
+        return result(QString::number(convert(*reinterpret_cast<const u32 *>(data.data()))));
 
     if (names_regexp.match(name).hasMatch()) {
         auto lines = data.split(0);
         lines.removeLast();
 
-        string ret;
+        QString ret;
         for (auto i = 0; i < lines.count(); ++i) {
             if (i == lines.count() - 1)
                 ret += lines[i];
@@ -81,15 +81,15 @@ QString present(const fdt::qt_wrappers::property &p) {
 }
 } // namespace
 
-fdt::viewer::viewer(tree_widget *target)
+fdt::viewer::viewer(QTreeWidget *target)
         : m_target(target) {
 }
 
-auto fdt::viewer::is_loaded(string &&id) const noexcept -> bool {
+auto fdt::viewer::is_loaded(QString &&id) const noexcept -> bool {
     return m_tree.contains(id);
 }
 
-auto fdt::viewer::is_loaded(const string &id) const noexcept -> bool {
+auto fdt::viewer::is_loaded(const QString &id) const noexcept -> bool {
     return m_tree.contains(id);
 }
 
@@ -98,7 +98,7 @@ struct overloaded : Ts... {
     using Ts::operator()...;
 };
 
-bool fdt::viewer::load(QByteArray &&data, string &&name, string &&id) {
+bool fdt::viewer::load(QByteArray &&data, QString &&name, QString &&id) {
     using namespace fdt::parser;
     using namespace fdt::qt_wrappers;
 
@@ -128,11 +128,11 @@ bool fdt::viewer::load(QByteArray &&data, string &&name, string &&id) {
     return true;
 }
 
-void fdt::viewer::drop(string &&id) {
+void fdt::viewer::drop(QString &&id) {
     m_tree.remove(id);
 }
 
-bool fdt::fdt_content_filter(QTreeWidgetItem *node, const std::function<bool(const string &)> &match) {
+bool fdt::fdt_content_filter(QTreeWidgetItem *node, const std::function<bool(const QString &)> &match) {
     QList<QTreeWidgetItem *> nodes;
     QList<QTreeWidgetItem *> properties;
 
@@ -169,8 +169,8 @@ bool fdt::fdt_content_filter(QTreeWidgetItem *node, const std::function<bool(con
     return isFound;
 }
 
-bool fdt::fdt_view_dts(QTreeWidgetItem *item, string &ret, int depth) {
-    string depth_str;
+bool fdt::fdt_view_dts(QTreeWidgetItem *item, QString &ret, int depth) {
+    QString depth_str;
     depth_str.fill(' ', depth * 4);
 
     QList<QTreeWidgetItem *> nodes;

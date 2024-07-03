@@ -2,6 +2,7 @@
 #include "fdt/fdt-parser-tokens.hpp"
 #include "fdt/fdt-property-types.hpp"
 #include "qabstractitemview.h"
+#include "qelapsedtimer.h"
 #include "ui_main-window.h"
 
 #include <QAction>
@@ -65,7 +66,7 @@ MainWindow::MainWindow(QWidget *parent)
         auto node = m_ui->treeWidget->invisibleRootItem();
 
         fdt::fdt_content_filter(
-            node, [&text](const string &value) -> bool {
+            node, [&text](const QString &value) -> bool {
                 if (text.isEmpty())
                     return true;
 
@@ -113,7 +114,7 @@ MainWindow::~MainWindow() {
     settings.window_position.set(geometry());
 }
 
-void MainWindow::open_directory(const string &path) {
+void MainWindow::open_directory(const QString &path) {
     QDirIterator iter(path, {"*.dtb", "*.dtbo"}, QDir::Files);
     while (iter.hasNext()) {
         iter.next();
@@ -121,17 +122,17 @@ void MainWindow::open_directory(const string &path) {
     }
 }
 
-void MainWindow::open_file(const string &path) {
+void MainWindow::open_file(const QString &path) {
     if (!open(path))
         dialogs::warn_invalid_fdt(path, this);
 }
 
-bool MainWindow::open(const string &path) {
+bool MainWindow::open(const QString &path) {
     QFile file(path);
     if (!file.open(QIODevice::ReadOnly))
         return false;
 
-    const auto info = file_info(path);
+    const auto info = QFileInfo(path);
 
     if (m_viewer->is_loaded(info.absoluteFilePath()) &&
         dialogs::ask_already_opened(this))
@@ -191,9 +192,8 @@ void MainWindow::update_view() {
     m_ui->text_view->clear();
     update_fdt_path(item);
 
-    string ret;
+    QString ret;
     ret.reserve(VIEW_TEXT_CACHE_SIZE);
-
     fdt::fdt_view_dts(item, ret);
     m_ui->text_view->setText(ret);
 }

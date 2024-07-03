@@ -1,11 +1,12 @@
 #include "fdt-generator-qt.hpp"
 #include "fdt/fdt-parser-tokens.hpp"
 #include "fdt/fdt-property-types.hpp"
+#include <memory>
 #include <string_view>
 
 using namespace fdt::qt_wrappers;
 
-tree_generator::tree_generator(tree_info &reference, tree_widget *target, string &&name, string &&id) {
+tree_generator::tree_generator(tree_info &reference, QTreeWidget *target, QString &&name, QString &&id) {
     m_root = [&]() {
         if (reference.root)
             return reference.root;
@@ -16,8 +17,8 @@ tree_generator::tree_generator(tree_info &reference, tree_widget *target, string
     }();
 
     m_root->setText(0, name);
-    m_root->setData(0, QT_ROLE_FILEPATH, id);
     m_root->setIcon(0, QIcon::fromTheme("folder-open"));
+    m_root->setData(0, QT_ROLE_FILEPATH, id);
     m_root->setData(0, QT_ROLE_NODETYPE, QVariant::fromValue(NodeType::Node));
     m_root->setExpanded(true);
     m_root->setSelected(true);
@@ -60,7 +61,7 @@ void tree_generator::end_node() noexcept {
 void tree_generator::insert_property(const fdt::parser::token_types::property &prop) noexcept {
     auto item = new QTreeWidgetItem(m_tree_stack.top());
 
-    fdt::qt_wrappers::property property{
+    auto property = fdt::qt_wrappers::property{
         .name = QString::fromUtf8(prop.name.data(), prop.name.size()),
         .data = QByteArray::fromRawData(prop.data.data(), prop.data.size()),
     };

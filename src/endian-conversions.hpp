@@ -2,6 +2,7 @@
 
 #include <types.hpp>
 
+#include <algorithm>
 #include <bit>
 #include <cstring>
 
@@ -18,7 +19,6 @@ template <std::integral T>
 T convert(const T data) noexcept {
     if constexpr (std::endian::native == std::endian::little)
         return byteswap(data);
-
     return data;
 }
 

@@ -12,7 +12,7 @@ struct context {
 
     struct {
         const char *data{nullptr};
-        int skip{};
+        u32 skip{};
     } state;
 };
 
