@@ -138,7 +138,7 @@ bool fdt::fdt_content_filter(QTreeWidgetItem *node, const std::function<bool(con
 
     for (auto i = 0; i < node->childCount(); ++i) {
         const auto child = node->child(i);
-        switch (child->data(0, QT_ROLE_NODETYPE).value<NodeType>()) {
+        switch (child->data(0, fdt::qt_wrappers::ROLE_NODETYPE).value<NodeType>()) {
             case NodeType::Node:
                 nodes.append(child);
                 break;
@@ -156,7 +156,7 @@ bool fdt::fdt_content_filter(QTreeWidgetItem *node, const std::function<bool(con
         if (isFound)
             break;
 
-        const auto property = item->data(0, QT_ROLE_PROPERTY).value<fdt::qt_wrappers::property>();
+        const auto property = item->data(0, fdt::qt_wrappers::ROLE_PROPERTY).value<fdt::qt_wrappers::property>();
         isFound |= match(property.name) || match(present(property));
     }
 
@@ -178,7 +178,7 @@ bool fdt::fdt_view_dts(QTreeWidgetItem *item, QString &ret, int depth) {
 
     for (auto i = 0; i < item->childCount(); ++i) {
         const auto child = item->child(i);
-        switch (child->data(0, QT_ROLE_NODETYPE).value<NodeType>()) {
+        switch (child->data(0, fdt::qt_wrappers::ROLE_NODETYPE).value<NodeType>()) {
             case NodeType::Node:
                 nodes.append(child);
                 break;
@@ -194,7 +194,7 @@ bool fdt::fdt_view_dts(QTreeWidgetItem *item, QString &ret, int depth) {
     ret += depth_str + item->data(0, Qt::DisplayRole).toString() + " {\n";
 
     for (auto item : properties) {
-        const auto property = item->data(0, QT_ROLE_PROPERTY).value<fdt::qt_wrappers::property>();
+        const auto property = item->data(0, fdt::qt_wrappers::ROLE_PROPERTY).value<fdt::qt_wrappers::property>();
         ret += depth_str + "    " + present(property) + "\n";
     }
 

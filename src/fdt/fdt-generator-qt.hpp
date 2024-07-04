@@ -12,10 +12,6 @@
 
 Q_DECLARE_METATYPE(fdt::qt_wrappers::property)
 
-constexpr auto QT_ROLE_PROPERTY = Qt::UserRole;
-constexpr auto QT_ROLE_FILEPATH = Qt::UserRole + 1;
-constexpr auto QT_ROLE_NODETYPE = Qt::UserRole + 2;
-
 enum class NodeType {
     Node,
     Property
@@ -37,6 +33,11 @@ struct tree_info {
 using tree_map = hash_map<QString, tree_info>;
 
 namespace fdt::qt_wrappers {
+
+constexpr auto ROLE_PROPERTY = Qt::UserRole;
+constexpr auto ROLE_FILEPATH = Qt::UserRole + 1;
+constexpr auto ROLE_NODETYPE = Qt::UserRole + 2;
+constexpr auto ROLE_DATA_HOLDER = Qt::UserRole + 3;
 
 struct tree_generator {
     tree_generator(tree_info &reference, QTreeWidget *target, QString &&name, QString &&id);

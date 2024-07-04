@@ -2,7 +2,6 @@
 #include "fdt/fdt-parser-tokens.hpp"
 #include "fdt/fdt-property-types.hpp"
 #include "qabstractitemview.h"
-#include "qelapsedtimer.h"
 #include "ui_main-window.h"
 
 #include <QAction>
@@ -160,7 +159,7 @@ void MainWindow::update_fdt_path(QTreeWidgetItem *item) {
 
     m_fdt = root;
 
-    m_ui->statusbar->showMessage("file://" + root->data(0, QT_ROLE_FILEPATH).toString());
+    m_ui->statusbar->showMessage("file://" + root->data(0, fdt::qt_wrappers::ROLE_FILEPATH).toString());
     m_ui->path->setText("fdt://" + path);
 }
 
@@ -181,11 +180,11 @@ void MainWindow::update_view() {
 
     const auto item = m_ui->treeWidget->selectedItems().first();
 
-    const auto type = item->data(0, QT_ROLE_NODETYPE).value<NodeType>();
+    const auto type = item->data(0, fdt::qt_wrappers::ROLE_NODETYPE).value<NodeType>();
     m_ui->preview->setCurrentWidget(NodeType::Node == type ? m_ui->text_view_page : m_ui->property_view_page);
 
     if (NodeType::Property == type) {
-        const auto property = item->data(0, QT_ROLE_PROPERTY).value<fdt::qt_wrappers::property>();
+        const auto property = item->data(0, fdt::qt_wrappers::ROLE_PROPERTY).value<fdt::qt_wrappers::property>();
         m_hexview->setDocument(QHexDocument::fromMemory<QMemoryBuffer>(property.data));
     }
 
@@ -203,10 +202,10 @@ void MainWindow::property_export() {
         return;
 
     const auto item = m_ui->treeWidget->selectedItems().first();
-    const auto type = item->data(0, QT_ROLE_NODETYPE).value<NodeType>();
+    const auto type = item->data(0, fdt::qt_wrappers::ROLE_NODETYPE).value<NodeType>();
 
     if (NodeType::Property == type) {
-        const auto property = item->data(0, QT_ROLE_PROPERTY).value<fdt::qt_wrappers::property>();
+        const auto property = item->data(0, fdt::qt_wrappers::ROLE_PROPERTY).value<fdt::qt_wrappers::property>();
 
         m_hexview->setDocument(QHexDocument::fromMemory<QMemoryBuffer>(property.data));
         fdt::export_property_file_dialog(this, property.data, property.name);

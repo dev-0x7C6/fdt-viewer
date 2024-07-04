@@ -18,8 +18,8 @@ tree_generator::tree_generator(tree_info &reference, QTreeWidget *target, QStrin
 
     m_root->setText(0, name);
     m_root->setIcon(0, QIcon::fromTheme("folder-open"));
-    m_root->setData(0, QT_ROLE_FILEPATH, id);
-    m_root->setData(0, QT_ROLE_NODETYPE, QVariant::fromValue(NodeType::Node));
+    m_root->setData(0, ROLE_FILEPATH, id);
+    m_root->setData(0, ROLE_NODETYPE, QVariant::fromValue(NodeType::Node));
     m_root->setExpanded(true);
     m_root->setSelected(true);
 }
@@ -38,7 +38,7 @@ void tree_generator::begin_node(std::string_view vname) noexcept {
             if (root->child(i)->text(0) == name) {
                 auto ret = root->child(i);
                 ret->setIcon(0, QIcon::fromTheme("folder-new"));
-                ret->setData(0, QT_ROLE_NODETYPE, QVariant::fromValue(NodeType::Node));
+                ret->setData(0, ROLE_NODETYPE, QVariant::fromValue(NodeType::Node));
                 return root->child(i);
             }
 
@@ -48,7 +48,7 @@ void tree_generator::begin_node(std::string_view vname) noexcept {
     if (child->text(0).isEmpty()) {
         child->setText(0, name);
         child->setIcon(0, QIcon::fromTheme("folder-open"));
-        child->setData(0, QT_ROLE_NODETYPE, QVariant::fromValue(NodeType::Node));
+        child->setData(0, ROLE_NODETYPE, QVariant::fromValue(NodeType::Node));
     }
 
     m_tree_stack.emplace(child);
@@ -68,6 +68,6 @@ void tree_generator::insert_property(const fdt::parser::token_types::property &p
 
     item->setText(0, QString::fromUtf8(prop.name.data(), prop.name.size()));
     item->setIcon(0, QIcon::fromTheme("flag-green"));
-    item->setData(0, QT_ROLE_NODETYPE, QVariant::fromValue(NodeType::Property));
-    item->setData(0, QT_ROLE_PROPERTY, QVariant::fromValue(std::move(property)));
+    item->setData(0, ROLE_NODETYPE, QVariant::fromValue(NodeType::Property));
+    item->setData(0, ROLE_PROPERTY, QVariant::fromValue(std::move(property)));
 }
