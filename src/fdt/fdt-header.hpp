@@ -1,6 +1,7 @@
 #pragma once
 
 #include <types.hpp>
+#include <cstddef>
 
 namespace fdt::decode {
 struct header {
@@ -24,6 +25,10 @@ struct property {
 constexpr auto is_magic_invalid(const header &v) -> bool {
     constexpr auto header_magic_value = 0xD00DFEED;
     return v.magic != header_magic_value;
+}
+
+constexpr auto is_data_truncated(const header &v, const std::size_t size) -> bool {
+    return size < v.totalsize;
 }
 
 constexpr auto is_version_unsupported(const header &v) -> bool {

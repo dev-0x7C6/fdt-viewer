@@ -80,7 +80,7 @@ auto fdt::parser::parse(std::string_view view) -> std::expected<fdt::parser::tok
     if (decode::is_magic_invalid(header))
         return std::unexpected(error::invalid_magic);
 
-    if (view.size() < header.totalsize)
+    if (decode::is_data_truncated(header, view.size()))
         return std::unexpected(error::data_truncated);
 
     if (decode::is_version_unsupported(header))

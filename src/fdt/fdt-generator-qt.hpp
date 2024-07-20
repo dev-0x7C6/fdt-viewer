@@ -32,6 +32,15 @@ struct tree_info {
 
 using tree_map = hash_map<QString, tree_info>;
 
+namespace fdt {
+template <typename T>
+concept TreeGenerator = requires(T t, std::string_view sv, const fdt::parser::token_types::property &prop) {
+    { t.begin_node(sv) };
+    { t.end_node() };
+    { t.insert_property(prop) };
+};
+} // namespace fdt
+
 namespace fdt::qt_wrappers {
 
 constexpr auto ROLE_PROPERTY = Qt::UserRole;

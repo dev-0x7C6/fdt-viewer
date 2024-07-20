@@ -13,6 +13,21 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 add_compile_definitions("-D__cpp_concepts=202002L")
 
+find_package(Qt6 COMPONENTS Widgets Core Qsci)
+
+find_path(QSCI_INCLUDE_DIR NAMES qt6/Qsci/qsciscintilla.h)
+find_library(QSCI_LIBRARY NAMES qscintilla2_qt6)
+
+if (QSCI_INCLUDE_DIR AND QSCI_LIBRARY)
+    message(STATUS "Found QScintilla")
+else()
+    message(FATAL_ERROR "QScintilla not found")
+endif()
+
+add_library(QScintilla INTERFACE)
+target_include_directories(QScintilla INTERFACE ${QSCI_INCLUDE_DIR})
+target_link_libraries(QScintilla INTERFACE ${QSCI_LIBRARY})
+
 find_package(Qt6 COMPONENTS Widgets Core)
 if (Qt6_FOUND)
 	add_subdirectory("src")

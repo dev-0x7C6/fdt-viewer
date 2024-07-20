@@ -1,7 +1,5 @@
 #include "main-window.hpp"
-#include "fdt/fdt-parser-tokens.hpp"
 #include "fdt/fdt-property-types.hpp"
-#include "qabstractitemview.h"
 #include "ui_main-window.h"
 
 #include <QAction>
@@ -18,6 +16,9 @@
 #include <fdt/fdt-view.hpp>
 #include <menu-manager.hpp>
 #include <viewer-settings.hpp>
+
+#include <Qsci/qscilexercpp.h>
+#include <Qsci/qsciscintilla.h>
 
 #include "submodules/qhexview/model/buffer/qmemorybuffer.h"
 #include "submodules/qhexview/qhexview.h"
@@ -46,10 +47,10 @@ MainWindow::MainWindow(QWidget *parent)
     connect(m_menu.get(), &menu_manager::show_normal, this, &MainWindow::showNormal);
     connect(m_menu.get(), &menu_manager::quit, this, &MainWindow::close);
 
-    m_ui->text_view->setWordWrapMode(QTextOption::NoWrap);
+    m_ui->editor->setWrapMode(QsciScintilla::WrapNone);
 
     connect(m_menu.get(), &menu_manager::use_word_wrap, [this](const bool value) {
-        m_ui->text_view->setWordWrapMode(value ? QTextOption::WordWrap : QTextOption::NoWrap);
+        m_ui->editor->setWrapMode(value ? QsciScintilla::WrapWord : QsciScintilla::WrapNone);
     });
 
     connect(m_menu.get(), &menu_manager::show_about_qt, []() { QApplication::aboutQt(); });
@@ -97,7 +98,18 @@ MainWindow::MainWindow(QWidget *parent)
     connect(m_ui->treeWidget, &QTreeWidget::itemSelectionChanged, this, &MainWindow::update_view);
 
     viewer_settings settings;
-    m_ui->text_view->setWordWrapMode(settings.view_word_wrap.value() ? QTextOption::WordWrap : QTextOption::NoWrap);
+    auto lexer = new QsciLexerCPP(this, false);
+
+    lexer->setFont(QFont{});
+    lexer->setColor(Qt::yellow, QsciLexerCPP::Identifier);
+    lexer->setColor(Qt::lightGray, QsciLexerCPP::Operator);
+    lexer->setColor(Qt::green, QsciLexerCPP::DoubleQuotedString);
+
+    m_ui->editor->setLexer(lexer);
+    m_ui->editor->setMarginsBackgroundColor(Qt::black);
+    m_ui->editor->setMarginsForegroundColor(Qt::green);
+    m_ui->editor->setMarginType(0, QsciScintilla::NumberMargin);
+    m_ui->editor->setMarginWidth(0, 50);
 
     if (settings.window_show_fullscreen.value())
         showFullScreen();
@@ -172,7 +184,7 @@ void MainWindow::update_view() {
 
     if (m_ui->treeWidget->selectedItems().isEmpty()) {
         m_ui->preview->setCurrentWidget(m_ui->text_view_page);
-        m_ui->text_view->clear();
+        m_ui->editor->clear();
         m_ui->statusbar->clearMessage();
         m_ui->path->clear();
         return;
@@ -188,13 +200,19 @@ void MainWindow::update_view() {
         m_hexview->setDocument(QHexDocument::fromMemory<QMemoryBuffer>(property.data));
     }
 
-    m_ui->text_view->clear();
+    m_ui->editor->clear();
     update_fdt_path(item);
 
     QString ret;
     ret.reserve(VIEW_TEXT_CACHE_SIZE);
     fdt::fdt_view_dts(item, ret);
-    m_ui->text_view->setText(ret);
+
+    m_ui->editor->setText(ret);
+
+    QFontMetrics metrics(QFont{});
+    const auto num = QString::number(m_ui->editor->lines());
+
+    m_ui->editor->setMarginWidth(0, metrics.horizontalAdvance(num) * 1.25);
 }
 
 void MainWindow::property_export() {

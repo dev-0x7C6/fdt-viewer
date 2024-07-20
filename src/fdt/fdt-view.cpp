@@ -3,6 +3,7 @@
 #include <endian-conversions.hpp>
 #include <fdt/fdt-generator-qt.hpp>
 #include <fdt/fdt-parser.hpp>
+#include <cstddef>
 
 #include <QTreeWidget>
 #include <QTreeWidgetItem>
@@ -102,7 +103,7 @@ bool fdt::viewer::load(QByteArray &&data, QString &&name, QString &&id) {
     using namespace fdt::parser;
     using namespace fdt::qt_wrappers;
 
-    auto tokens = parse({data.data(), data.size()});
+    auto tokens = parse({data.data(), static_cast<std::size_t>(data.size())});
 
     if (!tokens)
         return false;
@@ -112,7 +113,9 @@ bool fdt::viewer::load(QByteArray &&data, QString &&name, QString &&id) {
 
     fdt::parser::rename_root(tokens.value(), name.toStdString());
 
+    m_target->blockSignals(true);
     tree_generator generator(m_tree[id], m_target, std::move(name), std::move(id));
+    m_target->blockSignals(false);
 
     for (auto &&token : tokens.value())
         std::visit(overloaded{
