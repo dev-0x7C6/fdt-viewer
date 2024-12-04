@@ -26,7 +26,7 @@ struct property_info {
 };
 
 const static QHash<string, property_info> property_map = {
-    {"compatible", {property_type::string, word_size::custom}},
+    {"compatible", {property_type::multiline, word_size::custom}},
     {"phandle", {property_type::number, word_size::_32}},
     {"pinctrl-names", {property_type::multiline, word_size::custom}},
 };

@@ -41,10 +41,28 @@ string present(const fdt_property &property) {
         return name + " = \"" + value + "\";";
     };
 
+    auto result_multi = [&](auto &value) {
+        auto lines = value.split(0);
+        lines.removeLast();
+
+        string ret;
+        for (auto i = 0; i < lines.count(); ++i) {
+            if (i == lines.count() - 1)
+                ret += lines[i];
+            else
+                ret += lines[i] + "\", \"";
+        }
+
+        return result_str(std::move(ret));
+    };
+
     if (property_map.contains(name)) {
         const property_info info = property_map.value(name);
         if (property_type::string == info.type)
             return result_str({data});
+
+	if (property_type::multiline == info.type)
+	    return result_multi(data);
 
         if (property_type::number == info.type)
             return result(string::number(convert(*reinterpret_cast<const u32 *>(data.data()))));
@@ -57,18 +75,7 @@ string present(const fdt_property &property) {
         return result(string::number(convert(*reinterpret_cast<const u32 *>(data.data()))));
 
     if (names_regexp.match(name).hasMatch()) {
-        auto lines = data.split(0);
-        lines.removeLast();
-
-        string ret;
-        for (auto i = 0; i < lines.count(); ++i) {
-            if (i == lines.count() - 1)
-                ret += lines[i];
-            else
-                ret += lines[i] + ", ";
-        }
-
-        return result_str(std::move(ret));
+        return result_multi(data);
     }
 
     if (std::count_if(data.begin(), data.end(), [](auto &&value) { return value == 0x00; }) == 1 &&
