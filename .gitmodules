@@ -1,5 +1,5 @@
 [submodule "src/submodules/qhexview"]
-	path = src/submodules/qhexview
+	path = submodules/qhexview
 	url = https://github.com/Dax89/QHexView.git
 [submodule "formatter"]
 	path = formatter

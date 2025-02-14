@@ -1,7 +1,5 @@
 configure_file(config.h.in config.h)
 
-add_subdirectory("submodules/qhexview")
-
 file(GLOB_RECURSE fdt-viewer-headers *.hpp)
 file(GLOB_RECURSE fdt-viewer-sources *.cpp)
 file(GLOB_RECURSE fdt-viewer-uis *.ui)

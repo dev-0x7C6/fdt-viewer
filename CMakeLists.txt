@@ -11,9 +11,8 @@ set(CMAKE_AUTORCC ON)
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-add_compile_definitions("-D__cpp_concepts=202002L")
 
-find_package(Qt6 COMPONENTS Widgets Core Qsci)
+find_package(Qt6 COMPONENTS Widgets Core)
 
 find_path(QSCI_INCLUDE_DIR NAMES qt6/Qsci/qsciscintilla.h)
 find_library(QSCI_LIBRARY NAMES qscintilla2_qt6)
@@ -65,3 +64,4 @@ add_custom_target(docker
 
 include(CPack)
 
+add_subdirectory("submodules/qhexview")

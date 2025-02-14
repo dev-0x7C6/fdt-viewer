@@ -20,8 +20,8 @@
 #include <Qsci/qscilexercpp.h>
 #include <Qsci/qsciscintilla.h>
 
-#include "submodules/qhexview/model/buffer/qmemorybuffer.h"
-#include "submodules/qhexview/qhexview.h"
+#include "QHexView/qhexview.h"
+#include "QHexView/model/buffer/qmemorybuffer.h"
 
 using namespace Window;
 
