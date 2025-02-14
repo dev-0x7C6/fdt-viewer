@@ -1,33 +1,31 @@
 #pragma once
 
+#include <algorithm>
 #include <types.hpp>
 
-#include <algorithm>
 #include <bit>
+#include <span>
 #include <cstring>
 
-template <std::integral T>
-constexpr T byteswap(T value) noexcept {
-    static_assert(std::has_unique_object_representations_v<T>,
-        "T may not have padding bits");
-    auto value_representation = std::bit_cast<std::array<std::byte, sizeof(T)>>(value);
-    std::ranges::reverse(value_representation);
-    return std::bit_cast<T>(value_representation);
-}
-
-template <std::integral T>
-T convert(const T data) noexcept {
+template <std::integral integral>
+constexpr auto byteorder(const integral data) noexcept -> integral {
     if constexpr (std::endian::native == std::endian::little)
-        return byteswap(data);
+        return std::byteswap(data);
     return data;
 }
 
+namespace modify {
+template <std::integral type>
+constexpr auto byteorder(type &data) noexcept -> void {
+    data = ::byteorder(data);
+}
+} // namespace modify
+
 template <typename type, typename input_data>
-constexpr type read_data_32be(input_data *input) noexcept {
+constexpr type read_data_32be(const input_data *input) noexcept {
     type container{};
     std::memcpy(reinterpret_cast<void *>(&container), reinterpret_cast<const void *>(input), sizeof(type));
-    auto *data = reinterpret_cast<u32 *>(&container);
-    for (auto i = 0; i < (sizeof(type) / sizeof(u32)); ++i)
-        data[i] = convert<u32>(data[i]);
+    std::span<u32> data(reinterpret_cast<u32 *>(&container), sizeof(type) / 4);
+    std::ranges::for_each(data, modify::byteorder<u32>);
     return container;
 }

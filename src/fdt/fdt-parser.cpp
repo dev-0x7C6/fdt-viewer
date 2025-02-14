@@ -105,7 +105,7 @@ auto fdt::parser::parse(std::string_view view) -> std::expected<fdt::parser::tok
         return std::unexpected(error::data_unaligned);
 
     for (auto iter = begin; iter != end;) {
-        const auto id = static_cast<u32>(convert(*iter));
+        const auto id = static_cast<u32>(byteorder(*iter));
         ctx.state.data = reinterpret_cast<const char *>(++iter);
         ctx.state.skip = 0;
 

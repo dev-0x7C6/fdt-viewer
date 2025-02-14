@@ -51,14 +51,14 @@ QString present(const fdt::qt_wrappers::property &p) {
             return result_str(QString(data.data()));
 
         if (property_type::number == info.type)
-            return result(QString::number(convert(*reinterpret_cast<const u32 *>(data.data()))));
+            return result(QString::number(byteorder(*reinterpret_cast<const u32 *>(data.data()))));
     }
 
     const static QRegularExpression cells_regexp("^#.*-cells$");
     const static QRegularExpression names_regexp("^.*-names");
 
     if (cells_regexp.match(name).hasMatch())
-        return result(QString::number(convert(*reinterpret_cast<const u32 *>(data.data()))));
+        return result(QString::number(byteorder(*reinterpret_cast<const u32 *>(data.data()))));
 
     if (names_regexp.match(name).hasMatch()) {
         auto lines = data.split(0);
