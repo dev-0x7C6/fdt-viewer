@@ -69,7 +69,7 @@ auto foreach_token_type(std::variant<Ts...>, const u32 token_id, fdt::parser::co
     return (conditional_parse(Ts{}) || ...);
 }
 
-auto fdt::parser::parse(std::string_view view) -> std::expected<fdt::parser::tokens, fdt::parser::error> {
+auto fdt::parser::parse(std::string_view view) -> std::expected<fdt::parser::result, fdt::parser::error> {
     using error = fdt::parser::error;
 
     if (view.size() < sizeof(decode::header))
@@ -117,15 +117,41 @@ auto fdt::parser::parse(std::string_view view) -> std::expected<fdt::parser::tok
         if (std::holds_alternative<token_types::property>(tokens.back())) {
             auto &prop = std::get<token_types::property>(tokens.back());
 
-            if (auto dtb = fdt::parser::parse(prop.data); dtb.has_value()) {
-                auto &embedded_tokens = dtb.value();
-                rename_root(embedded_tokens, prop.name);
-                std::move(std::begin(embedded_tokens), std::end(embedded_tokens), std::back_inserter(tokens));
+            if (auto inner_dtb = fdt::parser::parse(prop.data); inner_dtb.has_value()) {
+                rename_root(inner_dtb.value().tokens, prop.name);
+                std::move(std::begin(inner_dtb.value().tokens), std::end(inner_dtb.value().tokens), std::back_inserter(tokens));
             }
         }
     }
 
-    return tokens;
+    return fdt::parser::result{
+        .header = header,
+        .tokens = std::move(tokens),
+    };
+}
+
+auto fdt::parser::parse_multiple_offsets(std::string_view view) -> std::vector<std::expected<fdt::parser::result, fdt::parser::error>> {
+    std::vector<std::expected<fdt::parser::result, fdt::parser::error>> ret;
+
+    using namespace fdt::decode;
+
+    auto reference = view;
+
+    while (view.size() >= sizeof(decode::header)) {
+        const auto magic = byteorder(*reinterpret_cast<const std::uint32_t *>(view.data()));
+
+        if (is_magic_valid(magic))
+            if (auto dtb = fdt::parser::parse(view); dtb.has_value()) {
+                dtb->offset = std::distance(reference.begin(), view.begin());
+                view = std::string_view(view.begin() + dtb.value().header.totalsize, view.end());
+                ret.emplace_back(std::move(dtb));
+                continue;
+            }
+
+        view = std::string_view(view.begin() + 1, view.end());
+    }
+
+    return ret;
 }
 
 auto fdt::parser::rename_root(fdt::parser::tokens &tokens, std::string_view name) -> bool {
@@ -142,6 +168,10 @@ template <class... Ts>
 struct overloaded : Ts... {
     using Ts::operator()...;
 };
+
+auto fdt::parser::validate(const fdt::parser::result &fdt) -> bool {
+    return validate(fdt.tokens);
+}
 
 auto fdt::parser::validate(const fdt::parser::tokens &tokens) -> bool {
     using namespace fdt::parser;

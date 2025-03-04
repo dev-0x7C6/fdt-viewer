@@ -103,31 +103,44 @@ bool fdt::viewer::load(QByteArray &&data, QString &&name, QString &&id) {
     using namespace fdt::parser;
     using namespace fdt::qt_wrappers;
 
-    auto tokens = parse({data.data(), static_cast<std::size_t>(data.size())});
+    auto results = parse_multiple_offsets({data.data(), static_cast<std::size_t>(data.size())});
 
-    if (!tokens)
-        return false;
+    for (auto &&result : results) {
+        if (!result)
+            return false;
 
-    if (!validate(tokens.value()))
-        return false;
+        if (!validate(result.value()))
+            return false;
 
-    fdt::parser::rename_root(tokens.value(), name.toStdString());
+        auto &&tokens = result.value().tokens;
 
-    m_target->blockSignals(true);
-    tree_generator generator(m_tree[id], m_target, std::move(name), std::move(id));
-    m_target->blockSignals(false);
+        QString root_id = id;
+        QString root_name = name;
 
-    for (auto &&token : tokens.value())
-        std::visit(overloaded{
-                       [&](const token_types::node_begin &arg) { generator.begin_node(arg.name); },
-                       [&](const token_types::node_end &) { generator.end_node(); },
-                       [&](const token_types::property &arg) { generator.insert_property(arg); },
-                       [&](const token_types::nop &) {},
-                       [&](const token_types::end &) {},
-                   },
-            token);
+        if (result->offset) {
+            root_name += "@" + QString::number(result->offset, 16);
+            root_id += "@" + QString::number(result->offset, 16);
+        }
 
-    generator.root()->setData(0, Qt::UserRole + 1000, std::move(data));
+        fdt::parser::rename_root(tokens, root_name.toStdString());
+
+        m_target->blockSignals(true);
+        tree_generator generator(m_tree[root_id], m_target, std::move(root_name), std::move(id));
+        m_target->blockSignals(false);
+
+        for (auto &&token : tokens)
+            std::visit(overloaded{
+                           [&](const token_types::node_begin &arg) { generator.begin_node(arg.name); },
+                           [&](const token_types::node_end &) { generator.end_node(); },
+                           [&](const token_types::property &arg) { generator.insert_property(arg); },
+                           [&](const token_types::nop &) {},
+                           [&](const token_types::end &) {},
+                       },
+                token);
+
+        generator.root()->setData(0, Qt::UserRole + 1000, std::move(data));
+    }
+
     return true;
 }
 

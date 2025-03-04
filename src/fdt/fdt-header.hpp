@@ -22,9 +22,17 @@ struct property {
     u32 nameoff;
 };
 
-constexpr auto is_magic_invalid(const header &v) -> bool {
+constexpr auto is_magic_valid(const std::uint32_t value) noexcept {
     constexpr auto header_magic_value = 0xD00DFEED;
-    return v.magic != header_magic_value;
+    return value == header_magic_value;
+}
+
+constexpr auto is_magic_valid(const header &v) noexcept -> bool {
+    return is_magic_valid(v.magic);
+}
+
+constexpr auto is_magic_invalid(const header &v) noexcept -> bool {
+    return !is_magic_valid(v.magic);
 }
 
 constexpr auto is_data_truncated(const header &v, const std::size_t size) -> bool {
