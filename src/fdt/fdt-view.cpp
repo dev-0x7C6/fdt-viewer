@@ -109,9 +109,6 @@ bool fdt::viewer::load(QByteArray &&data, QString &&name, QString &&id) {
         if (!result)
             return false;
 
-        if (!validate(result.value()))
-            return false;
-
         auto &&tokens = result.value().tokens;
 
         QString root_id = id;

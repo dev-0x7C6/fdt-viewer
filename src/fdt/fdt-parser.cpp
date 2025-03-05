@@ -8,17 +8,56 @@
 #include <cstdint>
 #include <cstring>
 #include <expected>
-#include <iostream>
 #include <string_view>
 #include <variant>
-
-#include <iostream>
 
 auto align(const std::size_t size) {
     const auto q = size % sizeof(u32);
     const auto w = size / sizeof(u32);
     return w + (q ? 1u : 0u);
 };
+
+template <class... Ts>
+struct overloaded : Ts... {
+    using Ts::operator()...;
+};
+
+auto validate(const fdt::parser::tokens &tokens) -> std::optional<fdt::parser::status> {
+    fdt::parser::status ret;
+    bool valid_depth_test = true;
+
+    using namespace fdt::parser;
+
+    for (auto &&token : tokens) {
+        std::visit(overloaded{
+                       [&](const token_types::node_begin &) {
+                           ret.node_begin_count++;
+                           ret.node_scope_depth++;
+                       },
+                       [&](const token_types::node_end &) {
+                           ret.node_end_count++;
+                           ret.node_scope_depth--;
+                       },
+                       [&](const token_types::property &) {
+                           ret.property_count++;
+                       },
+                       [&](const token_types::nop &) { ret.nop_count++; },
+                       [&](const token_types::end &) { ret.end_count++; },
+                   },
+            token);
+
+        // check that we never go below 0
+        valid_depth_test &= (ret.node_scope_depth >= 0);
+    }
+
+    if (!valid_depth_test)
+        return {};
+
+    if (ret.node_begin_count != ret.node_end_count)
+        return {};
+
+    return ret;
+}
 
 namespace fdt::parser {
 
@@ -124,9 +163,15 @@ auto fdt::parser::parse(std::string_view view) -> std::expected<fdt::parser::res
         }
     }
 
+    const auto status = validate(tokens);
+
+    if (!status)
+        return std::unexpected(error::invalid_structure);
+
     return fdt::parser::result{
         .header = header,
-        .tokens = std::move(tokens),
+        .tokens = tokens,
+        .status = status.value(),
     };
 }
 
@@ -162,56 +207,4 @@ auto fdt::parser::rename_root(fdt::parser::tokens &tokens, std::string_view name
         }
 
     return false;
-}
-
-template <class... Ts>
-struct overloaded : Ts... {
-    using Ts::operator()...;
-};
-
-auto fdt::parser::validate(const fdt::parser::result &fdt) -> bool {
-    return validate(fdt.tokens);
-}
-
-auto fdt::parser::validate(const fdt::parser::tokens &tokens) -> bool {
-    using namespace fdt::parser;
-
-    bool valid_depth_test{true};
-    std::int32_t node_scope_depth{};
-    std::int32_t node_begin_count{};
-    std::int32_t node_end_count{};
-    std::int32_t property_count{};
-    std::int32_t nop_count{};
-    std::int32_t end_count{};
-
-    for (auto &&token : tokens) {
-        std::visit(overloaded{
-                       [&](const token_types::node_begin &) {
-                           node_begin_count++;
-                           node_scope_depth++;
-                       },
-                       [&](const token_types::node_end &) {
-                           node_end_count++;
-                           node_scope_depth--;
-                       },
-                       [&](const token_types::property &) {
-                           property_count++;
-                       },
-                       [&](const token_types::nop &) { nop_count++; },
-                       [&](const token_types::end &) { end_count++; },
-                   },
-            token);
-
-        // check that we never go below 0
-        valid_depth_test &= (node_scope_depth >= 0);
-    }
-
-    std::cout << "node depth validation: " << valid_depth_test << std::endl;
-    std::cout << "node begin: " << node_begin_count << std::endl;
-    std::cout << "node end  : " << node_end_count << std::endl;
-    std::cout << "property  : " << property_count << std::endl;
-    std::cout << "nop       : " << nop_count << std::endl;
-    std::cout << "end       : " << end_count << std::endl;
-
-    return valid_depth_test && node_begin_count == node_end_count;
 }
