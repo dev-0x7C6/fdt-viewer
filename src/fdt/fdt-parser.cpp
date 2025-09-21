@@ -22,8 +22,8 @@ struct overloaded : Ts... {
     using Ts::operator()...;
 };
 
-auto validate(const fdt::parser::tokens &tokens) -> std::optional<fdt::parser::status> {
-    fdt::parser::status ret;
+auto validate(const fdt::parser::tokens &tokens) -> std::expected<fdt::parser::status, fdt::parser::error> {
+    fdt::parser::status ret{};
     bool valid_depth_test = true;
 
     using namespace fdt::parser;
@@ -51,10 +51,10 @@ auto validate(const fdt::parser::tokens &tokens) -> std::optional<fdt::parser::s
     }
 
     if (!valid_depth_test)
-        return {};
+        return std::unexpected(fdt::parser::error::invalid_structure);
 
     if (ret.node_begin_count != ret.node_end_count)
-        return {};
+        return std::unexpected(fdt::parser::error::invalid_structure);
 
     return ret;
 }
@@ -99,11 +99,12 @@ auto parse(token_types::end &&token, context &) -> fdt::parser::token {
 template <fdt::parser::Tokenizable... Ts>
 auto foreach_token_type(std::variant<Ts...>, const u32 token_id, fdt::parser::context &ctx) {
     auto conditional_parse = [&](auto &&token) {
-        if (fdt::parser::token_types::id_of(token) == token_id) {
+        const auto token_match = (fdt::parser::token_types::id_of(token) == token_id);
+
+        if (token_match)
             ctx.tokens.emplace_back(fdt::parser::parse(std::move(token), ctx));
-            return true;
-        }
-        return false;
+
+        return token_match;
     };
     return (conditional_parse(Ts{}) || ...);
 }
@@ -157,8 +158,10 @@ auto fdt::parser::parse(std::string_view view) -> std::expected<fdt::parser::res
             auto &prop = std::get<token_types::property>(tokens.back());
 
             if (auto inner_dtb = fdt::parser::parse(prop.data); inner_dtb.has_value()) {
-                rename_root(inner_dtb.value().tokens, prop.name);
-                std::move(std::begin(inner_dtb.value().tokens), std::end(inner_dtb.value().tokens), std::back_inserter(tokens));
+                auto &&inner_tokens = inner_dtb.value().tokens;
+
+                rename_root(tokens, prop.name);
+                std::move(std::begin(inner_tokens), std::end(inner_tokens), std::back_inserter(tokens));
             }
         }
     }
@@ -166,11 +169,11 @@ auto fdt::parser::parse(std::string_view view) -> std::expected<fdt::parser::res
     const auto status = validate(tokens);
 
     if (!status)
-        return std::unexpected(error::invalid_structure);
+        return std::unexpected(status.error());
 
     return fdt::parser::result{
-        .header = header,
-        .tokens = tokens,
+        .header = std::move(header),
+        .tokens = std::move(tokens),
         .status = status.value(),
     };
 }

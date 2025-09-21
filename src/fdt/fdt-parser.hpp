@@ -3,10 +3,10 @@
 #include "fdt/fdt-header.hpp"
 #include "fdt/fdt-parser-tokens.hpp"
 
-#include <string_view>
-#include <expected>
-#include <vector>
 #include <cstdint>
+#include <expected>
+#include <string_view>
+#include <vector>
 
 namespace fdt::parser {
 
