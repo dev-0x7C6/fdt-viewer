@@ -9,19 +9,19 @@ ENV LANGUAGE en_US.UTF-8
 
 RUN apt-get update && \
     apt-get -y --no-install-recommends install \
+        build-essential \
         git \
-	cmake \
-	make \
-	g++ \
-	qtbase5-dev && \
+        cmake \
+        ninja-build \
+        qt6-base-dev \
+        libqscintilla2-qt6-dev && \
     apt-get clean
 
 COPY . /root/
-
 WORKDIR /root
 
 RUN mkdir build && cd build && \
-	cmake -DCMAKE_BUILD_TYPE=Release .. && \
-	cmake --build . && \
-	cpack
+    cmake -GNinja -DCMAKE_BUILD_TYPE=Release .. && \
+    cmake --build . -j $(nproc) && \
+    cpack
 
