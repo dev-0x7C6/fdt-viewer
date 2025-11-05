@@ -11,11 +11,9 @@ jobs:
       uses: actions/checkout@v1
       with:
         submodules: recursive
-    - name: install qt
-      uses: jurplel/install-qt-action@v2.13.0
-    - name: install opengl
-      run: sudo apt-get install mesa-common-dev libglu1-mesa-dev ninja-build -y
+    - name: prepare dependencies
+      run: sudo apt-get -y --no-install-recommends install build-essential git cmake ninja-build qt6-base-dev libqscintilla2-qt6-dev
     - name: cmake
-      run: CC="gcc-10" CXX="g++-10" cmake -GNinja  .
-    - name: ninja 
-      run: CC="gcc-10" CXX="g++-10" ninja
+      run: cmake -GNinja .
+    - name: cmake build
+      run: cmake --build . -j $(nproc)
