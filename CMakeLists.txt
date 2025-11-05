@@ -1,6 +1,6 @@
-cmake_minimum_required(VERSION 3.29)
+cmake_minimum_required(VERSION 3.20)
 
-project(fdt-viewer VERSION 0.8.1 LANGUAGES CXX)
+project(fdt-viewer VERSION 0.9.0 LANGUAGES CXX)
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
