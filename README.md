@@ -24,21 +24,27 @@ Options:
   -d, --directory <directory>  open directory.
 ```
 
+#### Dependencies
+* Qt6
+* QScintilla (Qt6 version)
+
 #### Installation
 ```console
 user@host # git clone --recursive https://github.com/dev-0x7C6/fdt-viewer.git
-user@host # cd fdt-viewer
-user@host # cmake . -DCMAKE_INSTALL_PREFIX=/usr
-user@host # make -j$(nproc)
-root@host # make install
+user@host # mkdir -p fdt-viewer/build
+user@host # cd fdt-viewer/build
+user@host # cmake ..
+user@host # cmake --build -j $(nproc)
+user@host # cmake --install
 ```
 
 #### Packaging with Docker
 Create a Debian package of ftd-viewer in a Docker container and install it to the host system:
 ```console
 user@host # git clone --recursive https://github.com/dev-0x7C6/fdt-viewer.git
-user@host # cd fdt-viewer
-user@host # cmake .
+user@host # mkdir -p fdt-viewer/build_docker
+user@host # cd fdt-viewer/build_docker
+user@host # cmake ..
 user@host # make docker
 root@host # dpkg -i "fdt-viewer*.deb"
 ```
